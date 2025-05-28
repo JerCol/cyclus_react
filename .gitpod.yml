@@ -1,0 +1,9 @@
+image: gitpod/workspace-node:20
+
+tasks:
+  - init: npm install
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+ports:
+  - port: 5173
+    onOpen: open-preview
