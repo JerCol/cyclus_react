@@ -1,0 +1,46 @@
+
+/* -------- generic visual style -------- */
+.join-button{
+  /* ✂  NO position / top / left / translate here */
+  border:2px solid #000;
+  background:radial-gradient(circle at 30% 30%,
+             #fff 0%,#f7f7f7 60%,#e7e7e7 100%);
+  border-radius:999px;
+  font-size: 1.5rem;
+  color:#111;
+  text-shadow:0 1px 0 #fff;
+  box-shadow:
+    0 6px   0 #000,          /* hard rim  */
+    0 10px 18px rgba(0,0,0,.3);
+  cursor:pointer;
+  transition:transform .2s ease;
+}
+
+/* -------- interactive states -------- */
+.join-button:hover{
+  transform:scale(1.08);
+  box-shadow:
+    0 12px 0 #000,
+    0 16px 25px rgba(0,0,0,.35);
+}
+.join-button:active{
+  transform:scale(0.96);        /* pressed-in */
+  box-shadow:
+    0 4px 0 #000,
+    0 4px 10px rgba(0,0,0,.25);
+}
+
+/* -------- optional breathing animation -------- */
+@media (prefers-reduced-motion:no-preference){
+  .join-button{
+    animation:breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{transform:scale(1);}
+    50%    {transform:scale(1.15);}
+  }
+}
+.join-button.large {
+  font-size: 1.3rem;
+  padding: 1.2rem 1.2rem;
+}

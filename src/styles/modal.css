@@ -1,0 +1,47 @@
+/* dark semi-transparent full-screen backdrop */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* white card in the centre */
+.modal-content {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+}
+
+/* simple form styling */
+.modal-content h2 {
+  margin-top: 0;
+}
+.modal-content label {
+  display: block;
+  margin: 1rem 0;
+}
+.modal-content input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  box-sizing: border-box;
+}
+.modal-content fieldset {
+  margin: 1rem 0;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+.modal-content a {
+  color: #0066cc;
+  text-decoration: none;
+}
+.modal-content a:hover {
+  text-decoration: underline;
+}
