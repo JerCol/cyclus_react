@@ -21,17 +21,6 @@ export default function JoinForm({ onConfirm, onClose }) {
           />
         </label>
 
-        <p>
-          For the latest updates check our community&nbsp;
-          <a
-            href="https://chat.whatsapp.com/LBvA1PzU6ztJmsRBAzrDJN"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            WhatsApp
-          </a>
-        </p>
-
         <fieldset>
           <legend>Add to calendar?</legend>
           <label>
