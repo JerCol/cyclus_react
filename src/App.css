@@ -1,71 +1,11 @@
-/* reset & sizing */
-html, body, #root { height: 100%; margin: 0; }
-* { box-sizing: border-box; }
-
-.container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #000;
+/* ---------- global reset */
+*,*::before,*::after{box-sizing:border-box;}
+html,body,#root{
+  margin:0;
+  height:100%;          /* anchor the flexbox to “full page” */
+  overflow:hidden;      /* <-- kill scrolling at its source   */
+  overscroll-behavior:none;  /* prevents rubber-band on iOS    */
 }
-/* ------------------------------------------------------------------ */
-/* STATIC BACKGROUND IMAGE                                            */
-/* ------------------------------------------------------------------ */
-
-
-.bg-image {
-  position: fixed;
-  inset: 0;
-  background-size: cover;       /* fill viewport */
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: -3;                  /* behind the blue ripple (-1) */
-  pointer-events: none;         /* clicks pass through */
-}
-/* ------------------------------------------------------------------ */
-/* DRAWING WRAPPER + GRID                                             */
-/* ------------------------------------------------------------------ */
-
-.drawing-wrapper {
-   position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  border: 2px dashed #000;
-           /* base layer is non-interactive */
-}
-
-.drawing-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Keep aspect ratio */
-  display: block;
-}
-
-/* 8 rows × 4 columns exactly the size of the drawing */
-.grid-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(8, 1fr);
-  width: 100%;
-  height: 100%;
-  pointer-events: none; 
-}
-
-/* place the button: column 4, row 5, centred in its cell */
-.join-grid-position {
-  grid-column: 4;
-  grid-row: 5;
-  justify-self: center;
-  align-self: center;
-  pointer-events: auto; /* re-enable button interaction */
-}
-
-
 
 
 .bg-ripple {
@@ -75,66 +15,6 @@ html, body, #root { height: 100%; margin: 0; }
   z-index: -1;                  /* sits behind everything */
   pointer-events: none;         /* clicks pass through */
 }
-/* ------------------------------------------------------------------ */
-/* “I join” BUTTON                                                    */
-/* ------------------------------------------------------------------ */
-.drawing-img {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;   /* show whole image, keep aspect ratio */
-  z-index: -2;           /* above background.png (-3), below ripple (-1) */
-  pointer-events: none;  /* let clicks reach elements above */
-  user-select: none;
-}
-
-.join-button {
-  /* keep the position & transform lines you already have */
-  border: 2px solid #000;                          /* dark rim            */
-  background: radial-gradient(circle at 30% 30%,
-              #fff 0%, #f7f7f7 60%, #e7e7e7 100%); /* subtle dome-light   */
-  box-shadow:
-    0 6px   0   0   #000,                          /* hard lip            */
-    0 10px 18px 0   rgba(0,0,0,.30);               /* soft depth          */
-  text-shadow: 0 1px 0 #fff;                       /* crisper “JOIN” text */
-  /* 3️⃣  Button stays at the same *relative* spot in the picture */
-  position: absolute;
-  left: 50%;      /*  ⟵ adjust these two % values if you need a new spot      */
-  top:  90%;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  padding: 1rem 1.2rem;
-  font-weight: bold;
-  box-shadow: 2px 4px 6px rgba(0,0,0,.3);
-  cursor: pointer;
-  transition: transform .2s ease;
-}
-
-
-@media (prefers-reduced-motion: no-preference) {
-  .join-button {
-    animation: breathe 4.0s ease-in-out infinite;
-  }
-  @keyframes breathe {
-    0%, 100% { transform: translate(-50%, -50%) scale(1);   }
-    50%      { transform: translate(-50%, -50%) scale(1.15); }
-  }
-}
-
-.join-button:hover {
-  transform: translate(-50%, -50%) scale(1.08);
-  box-shadow:
-    0 12px 0   0   #000,
-    0 16px 25px 0 rgba(0,0,0,.35);
-}
-.join-button:active {
-  transform: translate(-50%, -46%);           /* pressed-in */
-  box-shadow:
-    0 4px 0 0 #000,
-    0 4px 10px rgba(0, 0, 0, 0.25);
-}
-
 .bg-ripple span {
   position: absolute;
   top: 50%;
@@ -154,134 +34,101 @@ html, body, #root { height: 100%; margin: 0; }
   100% { transform: scale(1);   opacity: 0; }
 }
 
-/* ---- visual layers ---------------------------------------------------- */
-
-.background {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 0, 0.10);  /* yellow checker in original */
-  z-index: 0;
-  color: #000;          /* just so the “Background layer” text shows */
+/* -------- generic visual style -------- */
+.join-button{
+  /* ✂  NO position / top / left / translate here */
+  border:2px solid #000;
+  background:radial-gradient(circle at 30% 30%,
+             #fff 0%,#f7f7f7 60%,#e7e7e7 100%);
+  border-radius:999px;
+  font-weight:bold;
+  color:#111;
+  text-shadow:0 1px 0 #fff;
+  box-shadow:
+    0 6px   0 #000,          /* hard rim  */
+    0 10px 18px rgba(0,0,0,.3);
+  cursor:pointer;
+  transition:transform .2s ease;
 }
 
-.ripple-container {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 10;
+/* -------- interactive states -------- */
+.join-button:hover{
+  transform:scale(1.08);
+  box-shadow:
+    0 12px 0 #000,
+    0 16px 25px rgba(0,0,0,.35);
+}
+.join-button:active{
+  transform:scale(0.96);        /* pressed-in */
+  box-shadow:
+    0 4px 0 #000,
+    0 4px 10px rgba(0,0,0,.25);
 }
 
-.ripple {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  margin: -100px 0 0 -100px;          /* centre the circle */
-  border-radius: 50%;
-  background: rgba(255, 0, 0, 0.50);  /* semi-transparent red */
-  transform: scale(0.5);
-  animation: ripple 2s ease-out infinite;
-}
-
-.label {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  z-index: 20;
-  background: #047857;       /* green */
-  color: #fff;
-  padding: 0.5rem 1rem;
-  font-size: 1.25rem;
-  border-radius: 0.25rem;
-}
-
-/* ---- keyframes -------------------------------------------------------- */
-
-@keyframes ripple {
-  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.5; }
-  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0;   }
-}
-
-.grid-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: grid;
-  width: 100%;
-  height: 100%;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(8, 1fr);
-  pointer-events: none;
-}
-
-.join-grid-position {
-  grid-column: 4;
-  grid-row: 8;
-  justify-self: center;
-  align-self: center;
-  pointer-events: auto;
-  padding: 1rem;
-  font-size: 1rem;
-  background: white;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.join-grid-position:hover {
-  transform: scale(1.1);
-}
-
-
-/* 1️⃣  Wrapper that always keeps the *entire* image in view */
-.image-container {
-  position: absolute;            /* take it out of the normal flow          */
-  top: 50%;
-  left: 50%;
-
-  /* keep both width  AND  height inside the viewport at all times           */
-  /* natural PNG ratio = 1406 ∶ 768  →  1.832                                 */
-  width:  min(100vw, calc(100vh * 1.832));
-  height: min(100vh, calc(100vw / 1.832));
-
-  transform: translate(-50%, -50%);   /* centre perfectly                    */
-  overflow: hidden;                   /* just-in-case safety                 */
-}
-/* 2️⃣  Image scales with the wrapper, never cropped */
-.responsive-drawing {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;                /* show the whole PNG                   */
-  display: block;
-}
-
-
-@media (orientation: portrait) {
-  .image-container {
-    /* stretch to the full viewport width, then centre vertically */
-    width: 100vw;
-    height: auto;                    /* height follows aspect ratio   */
-    left: 50%;
-    top:  50%;
-    transform: translate(-50%, -50%);
+/* -------- optional breathing animation -------- */
+@media (prefers-reduced-motion:no-preference){
+  .join-button{
+    animation:breathe 4s ease-in-out infinite;
   }
-
-  .responsive-drawing {
-    width: 100%;
-    height: auto;
-    object-fit: contain;             /* show the whole PNG            */
+  @keyframes breathe{
+    0%,100%{transform:scale(1);}
+    50%    {transform:scale(1.15);}
   }
 }
 
-/* ────────────────────────────────────────────────────────────────
-   2.  Always-visible JOIN text colour (and subtle halo)
-   ──────────────────────────────────────────────────────────────── */
 
-.join-button {
-  color: #111;                       /* fixed dark text, not blue     */
-  text-shadow: 0 1px 0 #fff;         /* tiny highlight for clarity    */
+.bg-image {
+  position: fixed;
+  inset: 0;
+  background-size: cover;       /* fill viewport */
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -3;                  /* behind the blue ripple (-1) */
+  pointer-events: none;         /* clicks pass through */
+}
+/* ------------------------------------------------------------------ */
+/* DRAWING WRAPPER + GRID                                             */
+/* ------------------------------------------------------------------ */
+
+
+/* ---------- dynamic viewport hack
+   `dvh` = dynamic viewport height (modern Chrome, FF, Safari 17+)
+   `svh` = “small” viewport height (iOS 15-16)
+   fall back to plain `vh` for older desktop browsers.
+*/
+:root{height:100dvh;}
+@supports(height:100svh){
+  :root{height:100svh;}
 }
 
-/* keep your existing hover rule … */
+/* ---------- 3–bars layout */
+.page{
+  display:flex;
+  flex-direction:column;
+  height:100%;      /* equals 100dvh / 100svh / 100vh set above */
+}
+
+/* 10 % / 80 % / 10 % split via flex ratios 1-8-1 */
+.top,
+.bottom{
+  flex:0 0 15%;     /* don’t let rounding expand them */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.middle{
+  flex:1 1 0;
+  min-height:0;
+  overflow:hidden;
+
+  /* --- NEW / RESTORED lines --- */
+  display:flex;             /* turn the bar into a flexbox            */
+  align-items:center;       /* vertical-centre (redundant but harmless)*/
+  justify-content:center;   /* **horizontal**-centre the <img>         */
+}
+
+.middle img{
+  height:100%;              /* fill the full 80 % height               */
+  width:auto;               /* keep aspect ratio                       */
+  max-width:100%;           /* don’t spill out on portrait phones      */
+}
