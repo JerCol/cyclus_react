@@ -114,7 +114,7 @@ html, body, #root { height: 100%; margin: 0; }
 
 @media (prefers-reduced-motion: no-preference) {
   .join-button {
-    animation: breathe 2.0s ease-in-out infinite;
+    animation: breathe 4.0s ease-in-out infinite;
   }
   @keyframes breathe {
     0%, 100% { transform: translate(-50%, -50%) scale(1);   }
@@ -258,3 +258,30 @@ html, body, #root { height: 100%; margin: 0; }
 }
 
 
+@media (orientation: portrait) {
+  .image-container {
+    /* stretch to the full viewport width, then centre vertically */
+    width: 100vw;
+    height: auto;                    /* height follows aspect ratio   */
+    left: 50%;
+    top:  50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .responsive-drawing {
+    width: 100%;
+    height: auto;
+    object-fit: contain;             /* show the whole PNG            */
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2.  Always-visible JOIN text colour (and subtle halo)
+   ──────────────────────────────────────────────────────────────── */
+
+.join-button {
+  color: #111;                       /* fixed dark text, not blue     */
+  text-shadow: 0 1px 0 #fff;         /* tiny highlight for clarity    */
+}
+
+/* keep your existing hover rule … */
