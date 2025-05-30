@@ -16,7 +16,7 @@ export default function App() {
     <div className="page">
       <section className="bar top">
         <button
-          className="join-button"
+          className="info-button"
           onClick={() => alert('Thanks for joining!')}
         >
           INFO
