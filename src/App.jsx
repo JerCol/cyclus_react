@@ -1,12 +1,30 @@
-import NewAttendeeForm from './components/NewAttendeeForm';
-import bg from './assets/background.png';   // Vite rewrites this to /assets/bg-ab12cd.png
+import RippleBackground from './RippleBackground.jsx';
+import bg        from './assets/background.png';
+import drawing   from './assets/drawing.png';
+import JoinButton from './JoinButton.jsx';
 
 export default function App() {
   return (
-    <main  className="min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: `url(${bg})` }}>
-      <h1 className="text-2xl font-semibold mb-4">Add attendee</h1>
-      <NewAttendeeForm />
-    </main>
+    <>
+      {/* static background image (stays at the very back) */}
+      <div
+        className="bg-image"
+        style={{ backgroundImage: `url(${bg})` }}
+      />
+
+      {/* drawing + grid overlay */}
+      <div className="image-container">
+  <img src={drawing} alt="drawing" className="responsive-drawing" />
+  <button
+    className="join-button"
+    onClick={() => alert('Thanks for joining!')}
+  >
+    JOIN
+  </button>
+</div>
+
+
+      <RippleBackground />
+    </>
   );
 }
