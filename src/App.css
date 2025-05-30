@@ -101,7 +101,7 @@ html, body, #root { height: 100%; margin: 0; }
   /* 3️⃣  Button stays at the same *relative* spot in the picture */
   position: absolute;
   left: 50%;      /*  ⟵ adjust these two % values if you need a new spot      */
-  top:  52%;
+  top:  90%;
   transform: translate(-50%, -50%);
   border-radius: 999px;
   padding: 1rem 1.2rem;
@@ -143,7 +143,7 @@ html, body, #root { height: 100%; margin: 0; }
   height: 200vmax;
   margin: -100vmax 0 0 -100vmax;/* centre the circle */
   border-radius: 50%;
-  background: rgba(114, 114, 113, 0.116); /* subtle blue tint */
+  background: rgba(114, 114, 113, 0.205); /* subtle blue tint */
   transform: scale(0);
   animation: bg-ripple 10s linear infinite;
 }
