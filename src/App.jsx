@@ -110,7 +110,7 @@ export default function App() {
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
         "SUMMARY:Cyclus 1",
-        "DESCRIPTION:location: Brussel, Ganshoren - https://maps.app.goo.gl/M7cumcAkbPHygRAW6",
+        "DESCRIPTION:Info -> www.cyclus-bxl.be\\nLocation -> https://maps.app.goo.gl/M7cumcAkbPHygRAW6",
         "END:VEVENT",
         "END:VCALENDAR",
       ];
