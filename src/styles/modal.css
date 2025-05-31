@@ -54,3 +54,133 @@
   font-size: 1.25rem;      /* optional: larger “×” */
   line-height: 1;
 }
+
+/* src/styles/info-modal.css */
+
+/* 1) Overlay (unchanged) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem; /* ensure some breathing room on very small screens */
+}
+
+/* 2) Modal box */
+.modal-content {
+  position: relative;
+
+  /* By default, let it be at most 600px wide, but shrink as needed */
+  width: 90%;
+  max-width: 600px;
+
+  /* Constrain height and allow scrolling if content is taller */
+  max-height: 80vh;
+  overflow-y: auto;
+
+  background: #ffffff;
+  border-radius: 8px;
+
+  /* Base padding; we’ll reduce this on very small screens */
+  padding: 1.5rem;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 3) Close button (unchanged) */
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 4) Modal text styles */
+.modal-body h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.modal-body h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.modal-body p {
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  color: #333333;
+}
+
+.modal-body ul {
+  margin: 0.5rem 0 1rem 1.25rem;
+  padding: 0;
+}
+
+.modal-body li {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.modal-body a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.modal-body a:hover {
+  text-decoration: none;
+}
+
+/* 5) Responsive tweaks for small screens */
+@media (max-width: 480px) {
+  .modal-content {
+    /* Make it a bit narrower on very small screens */
+    width: 95%;
+    max-width: 400px;
+
+    /* Less padding so the content can fit better */
+    padding: 1rem;
+  }
+
+  /* Slightly reduce heading and paragraph sizes */
+  .modal-body h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-body h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .modal-body p {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-body li {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+
+  /* Shrink the close button slightly */
+  .close-button {
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.25rem;
+  }
+}
