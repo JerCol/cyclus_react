@@ -1,0 +1,63 @@
+/* src/styles/topsection.css */
+
+/* ——————————————
+   1) The top bar itself
+   —————————————— */
+.bar.top {
+  position: relative;            /* anchor for any absolutely‐positioned children */
+  display: flex;
+  justify-content: flex-end;     /* right‐align any normal‐flow children (e.g. .attendee-count) */
+  align-items: center;
+  padding: 0.5rem 1rem;          
+  /* optional: add a subtle border or shadow at the bottom */
+  /* border-bottom: 1px solid #ddd; */
+}
+
+
+/* ——————————————————————————————————
+   2) Center the “INFO” button absolutely
+   —————————————————————————————————— */
+.bar.top .info-button {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Because the parent (.bar.top) is align‐items:center, 
+     the button is already vertically centered. */
+}
+
+
+/* —————————————————————————————————————————————————————
+   3) “counter” styling adapted from your #counter snippet,
+      but scoped under .bar.top instead of the entire window
+   ————————————————————————————————————————————————————— */
+/* Initially hidden (opacity: 0). Absolutely offset 16px from top/right of the bar. */
+.bar.top .counter {
+  position: absolute;
+  top: 16px;                /* 16px down from the top edge of .bar.top */
+  right: 16px;              /* 16px in from the right edge of .bar.top */
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;     /* so it doesn’t intercept clicks (optional) */
+}
+
+/* When .visible is added to the class list, fade it in */
+.bar.top .counter.visible {
+  opacity: 1;
+}
+
+/* ——————————————————————————
+   4) (Optional) if you still want
+      `.attendee-count` to have
+      its own default rules, you can
+      include them here. 
+   —————————————————————————— */
+.bar.top .attendee-count {
+  /* You only need this if some other logic relies on attendee‐count being a flex child. 
+     But since .counter is absolute, it’s out of the normal flow. 
+     If you don’t need any extra flex properties, you can remove this block. */
+  margin-right: 0.5rem;
+}

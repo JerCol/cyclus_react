@@ -36,13 +36,15 @@ html,body,#root{
 
 
 .bg-image {
-  position: fixed;
-  inset: 0;
-  background-size: cover;       /* fill viewport */
+  position: fixed;          /* sit fixed behind all other content */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;   /* scale the image to fill screen */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -3;                  /* behind the blue ripple (-1) */
-  pointer-events: none;         /* clicks pass through */
+  z-index: -2;              /* put it behind the wordsearch (z‐index -1) */
 }
 /* ------------------------------------------------------------------ */
 /* DRAWING WRAPPER + GRID                                             */

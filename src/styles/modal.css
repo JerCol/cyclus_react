@@ -11,6 +11,7 @@
 
 /* white card in the centre */
 .modal-content {
+  position: relative;
   background: #fff;
   border-radius: 0.5rem;
   padding: 1.5rem;
@@ -44,4 +45,12 @@
 }
 .modal-content a:hover {
   text-decoration: underline;
+}
+.modal-content .close-button {
+  position: absolute;
+  top: 0.5rem;    /* tweak vertical offset */
+  right: 0.5rem;  /* tweak horizontal offset */
+  padding: 0.25rem 0.5rem; /* optional: smaller size */
+  font-size: 1.25rem;      /* optional: larger “×” */
+  line-height: 1;
 }

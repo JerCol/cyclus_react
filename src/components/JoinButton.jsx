@@ -1,3 +1,4 @@
+// src/components/JoinButton.jsx
 export default function JoinButton({
   children = "JOIN",
   onClick = () => alert("Thanks for joining!"),
@@ -5,7 +6,7 @@ export default function JoinButton({
 }) {
   return (
     <button className={`join-button ${className}`} onClick={onClick}>
-      JOIN
+      {children}
     </button>
   );
 }

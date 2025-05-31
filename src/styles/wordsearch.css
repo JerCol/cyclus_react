@@ -1,0 +1,42 @@
+/* src/styles/wordsearch.css */
+
+/* 1) De achtergrond‐container over heel de viewport */
+.wordsearch-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;      /* sits on top of bg-image, but behind your UI */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 2) Iedere rij is een horizontale flexbox */
+.ws-row {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+/* 3) Iedere letter‐cel krijgt een vaste pixelafmeting */
+.ws-cell {
+  box-sizing: border-box;
+  width: 24px;             /* CEL‐WIDTH: pas hier aan als je een andere maat wenst */
+  height: 24px;            /* CEL‐HEIGHT: gelijk aan breedte om vierkant te blijven */
+  line-height: 24px;       /* Zet de tekst verticaal gecentreerd */
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;         /* Pas eventueel aan voor leesbaarheid */
+  text-align: center;      /* Horizontaal gecentreerd */
+  color: rgba(0, 0, 0, 0.692); /* Iets lichtere kleur, op de achtergrond */
+  user-select: none;       /* Niet selecteerbaar */
+}
+
+/* 4) Highlight‐stijl (bijv. gele achtergrond) voor nieuw toegevoegd woord */
+.ws-cell--highlight {
+  background-color: yellow;
+  color: black; 
+  opacity: 0.8;
+}

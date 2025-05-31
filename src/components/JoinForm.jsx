@@ -4,7 +4,7 @@ import "../styles/modal.css";
 
 export default function JoinForm({ onConfirm, onClose }) {
   const [nick, setNick] = useState("");
-  const [addCal, setAddCal] = useState("no");
+  const [addCal, setAddCal] = useState("yes");
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -17,7 +17,7 @@ export default function JoinForm({ onConfirm, onClose }) {
             type="text"
             value={nick}
             onChange={e => setNick(e.target.value)}
-            placeholder="Your nickname"
+            placeholder=""
           />
         </label>
 
