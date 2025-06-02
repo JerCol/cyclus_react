@@ -181,11 +181,13 @@
   font-weight: 700;
 }
 
+
 .slotmachine {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  /* 3 equal-width tracks that always fit the container */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 1rem;
+  justify-items: center;          /* centre each reel inside its cell */
 }
 
 .reel {
@@ -249,7 +251,12 @@
     right: 0.5rem;
     font-size: 1.25rem;
   }
+  .slotmachine {
+    grid-template-columns: repeat(2, max-content);
+    justify-items: center;              /* centre each slot */
+  }
 }
+
 /* -------------------------------------------------------------- */
 /*  Subtle “floating” cue for clickable artist tiles (mobile-first)
     – Runs continuously so touch users see it without hovering
