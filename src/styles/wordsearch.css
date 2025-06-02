@@ -21,6 +21,7 @@
   padding: 0;
 }
 
+
 /* 3) Iedere letter‐cel krijgt een vaste pixelafmeting */
 .ws-cell {
   box-sizing: border-box;
@@ -39,4 +40,18 @@
   background-color: yellow;
   color: black; 
   opacity: 0.8;
+}
+/* bold + red + visibly heavier */
+.ws-cell--bold {
+  font-weight: 200;          /* heaviest cut available */
+  font-size: 1.0em;          /* 10 % bigger */
+  -webkit-text-stroke: 1px currentColor; /* extra thickness */
+  text-shadow: 0 0 1px currentColor;     /* fallback for browsers w/o stroke */
+}
+
+/* keep your highlight colour winning if a cell is both bold + highlight */
+.ws-cell--bold.ws-cell--highlight {
+  color: inherit;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
 }

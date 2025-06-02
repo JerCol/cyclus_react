@@ -165,34 +165,48 @@ export default function WordSearchBackground({
   }, [words.join("|"), rows, cols]);
 
   // 14) Bepaal welke coördinaten horen bij het woord dat we willen highlighten
-  const highlightCoords = new Set();
-  if (highlightWord && wordPositions[highlightWord]) {
-    for (let [r, c] of wordPositions[highlightWord]) {
-      highlightCoords.add(`${r},${c}`);
-    }
+const highlightCoords = new Set();
+if (highlightWord && wordPositions[highlightWord]) {
+  for (let [r, c] of wordPositions[highlightWord]) {
+    highlightCoords.add(`${r},${c}`);
   }
+}
 
-  // 15) Render de volledige grid als achtergrond
-  return (
-    <div className="wordsearch-background">
-      {grid.map((rowArr, rowIdx) => (
-        <div key={rowIdx} className="ws-row">
-          {rowArr.map((letter, colIdx) => {
-            const cellKey = `${rowIdx},${colIdx}`;
-            const isHighlighted = highlightCoords.has(cellKey);
-            return (
-              <span
-                key={cellKey}
-                className={
-                  isHighlighted ? "ws-cell ws-cell--highlight" : "ws-cell"
-                }
-              >
-                {letter}
-              </span>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
+// 14b) Verzamel ALLE coördinaten die deel uitmaken van *een willekeurig* woord
+const wordCoords = useMemo(() => {
+  const set = new Set();
+  Object.values(wordPositions).forEach((coords) => {
+    coords.forEach(([r, c]) => set.add(`${r},${c}`));
+  });
+  return set;
+}, [wordPositions]);
+
+// 15) Render de volledige grid als achtergrond
+return (
+  <div className="wordsearch-background">
+    {grid.map((rowArr, rowIdx) => (
+      <div key={rowIdx} className="ws-row">
+        {rowArr.map((letter, colIdx) => {
+          const cellKey = `${rowIdx},${colIdx}`;
+          const isHighlighted = highlightCoords.has(cellKey);
+          const isWordCell = wordCoords.has(cellKey);
+          return (
+            <span
+              key={cellKey}
+              className={[
+                "ws-cell",
+                isWordCell && "ws-cell--bold",
+                isHighlighted && "ws-cell--highlight",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {letter}
+            </span>
+          );
+        })}
+      </div>
+    ))}
+  </div>
+);
 }
