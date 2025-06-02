@@ -80,32 +80,36 @@ const spin = () => {
     <div className="slot-machine-wrapper">
       
 
-      <div className="slotmachine">
-  {reels.map((artist, i) => (
-    <div
-      className="reel"
-      key={i}
-      style={{ width: `${maxLen + 2}ch` }}
-    >
-      {artist ? (
-        /* clickable only when link is present & non-empty */
-        artist.link ? (
-          <a
-            href={artist.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {artist.name}
-          </a>
+ <div className="slotmachine">
+  {reels.map((artist, i) => {
+    const hasLink = artist && !!artist.link;
+    return (
+      <div
+       className={`reel ${hasLink ? "reel--clickable" : ""}`}
+        key={i}
+        style={{ width: `${maxLen + 2}ch` }}
+      >
+        {artist ? (
+          hasLink ? (
+            <a
+              href={artist.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open ${artist.name}`}
+            >
+              {artist.name}
+            </a>
+          ) : (
+            <span>{artist.name}</span>
+          )
         ) : (
-          <span>{artist.name}</span>
-        )
-      ) : (
-        "-"
-      )}
-    </div>
-  ))}
+          "-"
+        )}
+      </div>
+    );
+  })}
 </div>
+
 
       <button className="join-button" onClick={spin}>
         Discover Artists

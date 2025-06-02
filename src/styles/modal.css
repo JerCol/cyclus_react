@@ -250,3 +250,37 @@
     font-size: 1.25rem;
   }
 }
+/* -------------------------------------------------------------- */
+/*  Subtle “floating” cue for clickable artist tiles (mobile-first)
+    – Runs continuously so touch users see it without hovering
+    – Pauses automatically for users who prefer reduced motion      */
+/* -------------------------------------------------------------- */
+
+@keyframes reelFloat {
+  0%, 100% { transform: translateY(0);        }
+  50%      { transform: translateY(-3px) scale(1.03); }
+}
+
+.reel--clickable {
+  cursor: pointer;
+  font-weight: 700;         /* keep link text slightly bolder */
+  /* motion only if the user allows it */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reel--clickable {
+    animation: reelFloat 2.5s ease-in-out infinite;
+  }
+  
+  /* Give tactile feedback when pressed */
+  .reel--clickable:active {
+    animation: none;                 /* stop float while pressing */
+    transform: translateY(0) scale(0.96);
+  }
+}
+
+/* Keep anchor styling neutral (no blue, no underline) */
+.reel--clickable a {
+  color: inherit !important;
+  text-decoration: none;
+}
