@@ -42,6 +42,10 @@
   max-width: 400px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.25);
 }
+.modal-overlay,
+.modal-content {
+  overflow-x: hidden; /* prevent horizontal scroll */
+}
 
 /* simple form styling */
 .modal-content h2 {
@@ -181,32 +185,44 @@
   font-weight: 700;
 }
 
-
+/* 1) Make the container a 3-column grid, with gaps around each cell */
 .slotmachine {
   display: grid;
-  /* 3 equal-width tracks that always fit the container */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  justify-items: center;          /* centre each reel inside its cell */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;           /* space between reels */
+  margin: 1rem 0;         /* space above/below the entire grid */
+  padding: 0 0.5rem;      /* small padding left/right so reels don’t touch modal edges */
+  width: 100%; 
+  box-sizing: border-box;
+  justify-items: center;  /* center each reel horizontally in its cell */
 }
-
 .reel {
-  height: 50px;
-  border: 2px solid #333;
-  border-radius: 6px;
-  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #222;      
+  min-height: 3.5rem;      /* ensure enough tappable area */
+  padding: 0.5rem;         /* breathing room for the text */
+  border: 2px solid #333;
+  border-radius: 6px;
+  background: #ffffff;
+  box-sizing: border-box;
+  text-align: center;
+  word-break: break-word;  /* wrap long names */
+  font-size: 0.9rem;       /* base font size (will shrink on small screens) */
+  line-height: 1.2;
 }
+/* 3) If a reel is clickable, keep the same “float” animation */
+.reel--clickable {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+
 .reel a,
 .reel a:visited,
 .reel a:hover,
 .reel a:focus {
-  color: inherit !important;  /* exactly the same as the reel’s colour */
+  color: inherit !important;
   text-decoration: none !important;
 }
 
@@ -251,12 +267,7 @@
     right: 0.5rem;
     font-size: 1.25rem;
   }
-  .slotmachine {
-    grid-template-columns: repeat(2, max-content);
-    justify-items: center;              /* centre each slot */
-  }
 }
-
 /* -------------------------------------------------------------- */
 /*  Subtle “floating” cue for clickable artist tiles (mobile-first)
     – Runs continuously so touch users see it without hovering
@@ -285,9 +296,184 @@
     transform: translateY(0) scale(0.96);
   }
 }
+@media (max-width: 640px) {
+  .slotmachine {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .reel {
+    font-size: 0.85rem;
+    min-height: 3rem;
+    padding: 0.4rem;
+  }
+}
+@media (max-width: 480px) {
+  .reel {
+    min-height: 50px;
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 420px) {
+  .slotmachine {
+    grid-template-columns: 1fr; /* stack vertically */
+  }
+  .reel {
+    font-size: 0.8rem;
+    min-height: 2.5rem;
+    padding: 0.3rem;
+  }
+}
 
 /* Keep anchor styling neutral (no blue, no underline) */
 .reel--clickable a {
   color: inherit !important;
   text-decoration: none;
+}
+
+/* -------------------------------------------------------------------
+   5) Add a little padding around the grid so reels don’t touch edges
+   ------------------------------------------------------------------- */
+.slot-machine-wrapper {
+  padding: 0 0.75rem; /* left/right breathing room inside the modal */
+  box-sizing: border-box;
+}
+
+/* If you want to ensure the modal body itself has inner padding: */
+.modal-body {
+  padding: 1rem; /* adjust as desired */
+}
+
+/* -------------------------------------------------------------------
+   6) OPTIONAL: tweak the “Discover Artists” button spacing
+   ------------------------------------------------------------------- */
+.slot-machine-wrapper .join-button {
+  margin-top: 0.75rem;
+}
+
+   --------------------------------------------------------------------- */
+.modal-content,
+.modal-body,
+.slot-machine-wrapper,
+.slotmachine,
+.reel {
+  box-sizing: border-box;
+}
+
+
+/* ---------------------------------------------------------------------
+   2) Prevent any horizontal overflow at the modal level 
+   --------------------------------------------------------------------- */
+.modal-overlay,
+.modal-content {
+  overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------------------
+   3) Slot‐machine container: use a three‐column grid with minmax(0,1fr)
+      so each column can shrink below its intrinsic content width. 
+   --------------------------------------------------------------------- */
+.slotmachine {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;        /* spacing between reels both horizontally & vertically */
+  margin: 1rem 0;      /* vertical space above/below the grid */
+  width: 100%;         /* let it fill the parent (modal-body/slot-machine-wrapper) */
+}
+
+/* ---------------------------------------------------------------------
+   4) Individual “reel” styling:  
+      • flex‐center text  
+      • a minimum height so it’s tappable  
+      • padding so the text doesn’t touch edges  
+      • font‐size that can shrink on small screens  
+      • word‐break to wrap long names  
+   --------------------------------------------------------------------- */
+.reel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;       /* enough height for tapping/clicking */
+  padding: 0.5rem;          /* breathing room around the artist’s name */
+  border: 2px solid #333;
+  border-radius: 6px;
+  background: #ffffff;
+  text-align: center;
+  word-break: break-word;   /* wrap long names instead of forcing a wide column */
+  font-size: 0.9rem;        /* base font size — we’ll shrink on smaller screens */
+  line-height: 1.2;
+  overflow-wrap: break-word;/* extra insurance that text doesn’t overflow */
+}
+
+/* Keep links inside the reel inheriting the same styles */
+.reel a,
+.reel a:visited,
+.reel a:hover,
+.reel a:focus {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Clickable reels: same float animation as before */
+.reel--clickable {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reel--clickable {
+    animation: reelFloat 2.5s ease-in-out infinite;
+  }
+  .reel--clickable:active {
+    animation: none;
+    transform: translateY(0) scale(0.96);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   5) Give the slot‐machine wrapper a bit of horizontal padding so reels
+      never butt right up against the modal’s inner edges.
+   --------------------------------------------------------------------- */
+.slot-machine-wrapper {
+  padding: 0 0.75rem;  /* left/right breathing room inside the modal */
+  box-sizing: border-box;
+}
+
+/* If your modal‐body doesn’t already have padding, you can add it here */
+.modal-body {
+  padding: 1rem; /* adjust higher or lower if you need more space around content */
+}
+
+/* ---------------------------------------------------------------------
+   6) Responsive tweaks: switch to 2 columns at <640px, then 1 column at <420px 
+   while also reducing font‐size, gap, and padding so nothing ever overflows.
+   --------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .slotmachine {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .reel {
+    font-size: 0.85rem;
+    min-height: 3rem;
+    padding: 0.4rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .slotmachine {
+    grid-template-columns: 1fr; /* stack vertically on very narrow screens */
+  }
+  .reel {
+    font-size: 0.8rem;
+    min-height: 2.5rem;
+    padding: 0.3rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7) (Optional) Tweak the “Discover Artists” button spacing to sit nicely
+      under the grid without causing overflow  
+   --------------------------------------------------------------------- */
+.slot-machine-wrapper .join-button {
+  margin-top: 0.75rem;
 }
