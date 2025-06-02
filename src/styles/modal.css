@@ -483,3 +483,26 @@
 .slot-machine-wrapper .join-button {
   margin-top: 0.75rem;
 }
+
+.modal-content input[type="text"],
+.modal-content input[type="radio"],
+.modal-content label {      /* radios inherit font-size from their label */
+  font-size: 16px;          /* ≥16 px disables Safari’s zoom */
+}
+
+@media (min-width: 480px){          /* only on wider screens */
+  .modal-content input[type="text"]{
+    font-size: 0.875rem;   /* ≈14 px, but Safari sees 16 px on phone */
+  }
+}
+
+/* fade + slide each reel as it appears */
+.reel {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.reel--visible {                 /* we’ll add this class in JSX */
+  opacity: 1;
+  transform: translateY(0);
+}

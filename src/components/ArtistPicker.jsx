@@ -1,122 +1,155 @@
+// src/components/ArtistPicker.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";      // ← adjust path if needed
-import "../styles/modal.css";               // keeps the same fonts / colours
+import { supabase } from "../lib/supabaseClient";
+import "../styles/modal.css";
 
 export default function ArtistPicker() {
-  /* ------------- state ------------- */
-  const [present, setPresent]  = useState([]);   // present = true rows
-  const [all, setAll]          = useState([]);   // every row (for spinning)
-  const [reels, setReels]     = useState([]);   // current items showing
+  /* ─────────────────── state ─────────────────── */
+  const [present, setPresent] = useState([]);   // artists with present=true
+  const [all, setAll]         = useState([]);   // every artist row
+  const [reels, setReels]     = useState([]);   // what each slot shows
+  const [fixed, setFixed]     = useState([]);   // has this slot landed yet?
   const [loading, setLoading] = useState(true);
-  const [maxLen, setMaxLen]   = useState(8);
-  const timers = useRef([]);                    // to clear intervals
+  const [maxLen, setMaxLen]   = useState(8);    // widest name → CSS width
+  const timers = useRef([]);                    // to clear intervals on unmount
 
-  /* ------------- fetch rows once on mount ------------- */
+  /* ─────────────────── fetch once ─────────────────── */
   useEffect(() => {
     (async () => {
-       /* 1️⃣  fetch ALL rows once */
-    const { data, error } = await supabase
-     .from("artists")
-     .select("id, name, link, present");
+      const { data, error } = await supabase
+        .from("artists")
+        .select("id, name, link, present");
+
       if (error) {
         console.error(error);
         setLoading(false);
         return;
       }
 
-       const pres = data.filter((r) => r.present);   // only present = true
+      const pres = data.filter(r => r.present);
+      setPresent(pres);
+      setAll(data);
 
-    setPresent(pres);
-    setAll(data);
-    setReels(Array(pres.length).fill(null));      // one reel per PRESENT artist
+      // initial empty reels & flags
+      setReels(Array(pres.length).fill(null));
+      setFixed(Array(pres.length).fill(false));
 
-    /* width should fit the longest name among ALL artists */
-    setMaxLen(
-      data.reduce((acc, row) => Math.max(acc, row.name?.length || 0), 1)
-    );
+      // for a neat grid give every slot the width of the longest name
+      setMaxLen(
+        data.reduce((acc, r) => Math.max(acc, r.name?.length || 0), 1)
+      );
 
       setLoading(false);
     })();
 
-    return () => timers.current.forEach(clearInterval); // cleanup on unmount
+    // clear any running intervals if the component unmounts
+    return () => timers.current.forEach(clearInterval);
   }, []);
 
-  /* ------------- spin animation ------------- */
-const spin = () => {
-  if (present.length === 0) return;
+  /* ─────────────────── helpers ─────────────────── */
+  const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  // clear any previous intervals
-  timers.current.forEach(clearInterval);
-  timers.current = [];
+  const markFixed = idx =>
+    setFixed(prev => {
+      const copy = [...prev];
+      copy[idx] = true;
+      return copy;
+    });
 
-  let ticks = 0;
-  const totalTicks = 30; // how many “frames” before it stops
+  /** Spin one slot, then resolve when it lands on its final artist */
+  const spinOneReel = (slotIdx, finalArtist, frames = 25, frameMs = 90) =>
+    new Promise(resolve => {
+      let tick = 0;
+      const id = setInterval(() => {
+        // show a random artist while spinning
+        setReels(prev => {
+          const copy = [...prev];
+          copy[slotIdx] = all[Math.floor(Math.random() * all.length)];
+          return copy;
+        });
 
-  const t = setInterval(() => {
-    /* Fisher-Yates shuffle for uniqueness */
-    const shuffledAll = [...all].sort(() => Math.random() - 0.5);
+        if (++tick >= frames) {
+          clearInterval(id);
 
-    /* …and show only the first N items (N = #present) */
-    setReels(shuffledAll.slice(0, present.length));
+          // land on the final artist
+          setReels(prev => {
+            const copy = [...prev];
+            copy[slotIdx] = finalArtist;
+            return copy;
+          });
+          markFixed(slotIdx); // make it clickable
+          resolve();
+        }
+      }, frameMs);
 
-    ticks += 1;
-        if (ticks > totalTicks) {
-      /* final frame: shuffle only PRESENT artists for the resting state */
-      const final = [...present].sort(() => Math.random() - 0.5);
-      setReels(final);
-      clearInterval(t);
+      timers.current.push(id);
+    });
+
+  /* ─────────────────── main “spin” ─────────────────── */
+  const spin = async () => {
+    if (present.length === 0) return;
+
+    // stop any earlier animations
+    timers.current.forEach(clearInterval);
+    timers.current = [];
+
+    // reset reels & flags
+    setReels(Array(present.length).fill(null));
+    setFixed(Array(present.length).fill(false));
+
+    // choose random final order for the landing state
+    const finalOrder = [...present].sort(() => Math.random() - 0.5);
+
+    // spin each reel sequentially (top → bottom)
+    for (let i = 0; i < finalOrder.length; i++) {
+      await spinOneReel(i, finalOrder[i]);
+      await delay(150); // little gap before the next slot starts
     }
-  }, 100);
+  };
 
-  timers.current.push(t);
-};
-
-
-  /* ------------- render ------------- */
-  if (loading) return <p>Loading artists…</p>;
-  if (present.length === 0) return <p>No artists marked “present”.</p>;
+  /* ─────────────────── render ─────────────────── */
+  if (loading)               return <p>Loading artists…</p>;
+  if (present.length === 0)  return <p>No artists marked “present”.</p>;
 
   return (
     <div className="slot-machine-wrapper">
-       <button className="join-button" onClick={spin}>
+      <button className="join-button" onClick={spin}>
         Discover Artists
       </button>
 
- <div className="slotmachine">
-  
-     
-  {reels.map((artist, i) => {
-    const hasLink = artist && !!artist.link;
-    return (
-      <div
-       className={`reel ${hasLink ? "reel--clickable" : ""}`}
-        key={i}
-        style={{ width: `${maxLen + 2}ch` }}
-      >
-        {artist ? (
-          hasLink ? (
-            <a
-              href={artist.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Open ${artist.name}`}
+      <div className="slotmachine">
+        {reels.map((artist, i) => {
+          const isFixed   = fixed[i];
+          const clickable = isFixed && artist && artist.link;
+
+          return (
+            <div
+              key={i}
+              className={`reel ${clickable ? "reel--clickable" : ""} ${
+                artist ? "reel--visible" : ""
+              }`}
+              style={{ width: `${maxLen + 2}ch` }}   /* +2ch padding */
             >
-              {artist.name}
-            </a>
-          ) : (
-            <span>{artist.name}</span>
-          )
-        ) : (
-          "-"
-        )}
+              {artist ? (
+                clickable ? (
+                  <a
+                    href={artist.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open ${artist.name}`}
+                  >
+                    {artist.name}
+                  </a>
+                ) : (
+                  <span>{artist.name}</span>
+                )
+              ) : (
+                "–"
+              )}
+            </div>
+          );
+        })}
       </div>
-    );
-  })}
-</div>
-
-
-
-      
     </div>
   );
 }
