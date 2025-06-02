@@ -78,9 +78,13 @@ const spin = () => {
 
   return (
     <div className="slot-machine-wrapper">
-      
+       <button className="join-button" onClick={spin}>
+        Discover Artists
+      </button>
 
  <div className="slotmachine">
+  
+     
   {reels.map((artist, i) => {
     const hasLink = artist && !!artist.link;
     return (
@@ -111,9 +115,6 @@ const spin = () => {
 </div>
 
 
-      <button className="join-button" onClick={spin}>
-        Discover Artists
-      </button>
 
       
     </div>
