@@ -217,6 +217,15 @@
   font-weight: 700;
 }
 
+.reel a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;      /* mirror the .reel padding so text stays centered */
+  box-sizing: border-box;
+  text-align: center;
+  word-break: break-word;
+}
 
 .reel a,
 .reel a:visited,
@@ -393,7 +402,6 @@
   align-items: center;
   justify-content: center;
   min-height: 3.5rem;       /* enough height for tapping/clicking */
-  padding: 0.5rem;          /* breathing room around the artist’s name */
   border: 2px solid #333;
   border-radius: 6px;
   background: #ffffff;
@@ -455,7 +463,6 @@
   .reel {
     font-size: 0.85rem;
     min-height: 3rem;
-    padding: 0.4rem;
   }
 }
 
@@ -466,7 +473,6 @@
   .reel {
     font-size: 0.8rem;
     min-height: 2.5rem;
-    padding: 0.3rem;
   }
 }
 
