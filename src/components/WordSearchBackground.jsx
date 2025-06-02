@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "../styles/wordsearch.css";
 
-// 1) Mogelijke richtingen (eight‐way)
 const DIRECTIONS = [
   { x: 1, y: 0 },   // →
   { x: -1, y: 0 },  // ←
@@ -14,60 +13,59 @@ const DIRECTIONS = [
   { x: -1, y: -1 }, // ↖
 ];
 
-// 2) Maak een lege rij van lengte `cols`, gevuld met null
 function createEmptyRow(cols) {
   return Array.from({ length: cols }, () => null);
 }
 
-// 3) Maak een lege grid van `rows × cols`
 function createEmptyGrid(rows, cols) {
   return Array.from({ length: rows }, () => createEmptyRow(cols));
 }
 
-// 4) Willekeurige integer [0, max)
 function randomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-// 5) Check of woord volledig past in de grid op gegeven rij/kolom in direction
+/**
+ * Check if `word` could go, letter by letter, starting at (row,col) moving in `dir`.
+ * Returns true only if every letter fits inside the grid boundaries and either
+ * the cell is null or already contains exactly that letter.
+ */
 function canPlaceWordRect(grid, word, row, col, dir) {
-  const rows = grid.length;
-  const cols = grid[0].length;
+  const R = grid.length, C = grid[0].length;
   for (let i = 0; i < word.length; i++) {
-    const newRow = row + dir.y * i;
-    const newCol = col + dir.x * i;
-    // Buitengrens‐check
-    if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
-      return false;
-    }
-    // Als er al een letter staat en die wijkt af, conflict
-    const existing = grid[newRow][newCol];
-    if (existing !== null && existing !== word[i]) {
-      return false;
-    }
+    const r2 = row + dir.y * i;
+    const c2 = col + dir.x * i;
+    if (r2 < 0 || r2 >= R || c2 < 0 || c2 >= C) return false;
+    const existing = grid[r2][c2];
+    if (existing !== null && existing !== word[i]) return false;
   }
   return true;
 }
 
-// 6) Plaats het woord in de grid en retourneer positie‐coördinaten
+/**
+ * Actually writes `word` into `grid` at (row,col) along `dir`, returning
+ * an array of [r,c] positions that we just filled. (Used both for normal placement
+ * and for “forced” overwrite placement.)
+ */
 function placeWordRect(grid, word, row, col, dir) {
   const positions = [];
   for (let i = 0; i < word.length; i++) {
-    const newRow = row + dir.y * i;
-    const newCol = col + dir.x * i;
-    grid[newRow][newCol] = word[i];
-    positions.push([newRow, newCol]);
+    const r2 = row + dir.y * i;
+    const c2 = col + dir.x * i;
+    grid[r2][c2] = word[i];
+    positions.push([r2, c2]);
   }
   return positions;
 }
 
-// 7) Vul lege cellen met random A–Z
+/**
+ * Fill all remaining null cells with random uppercase A–Z letters.
+ */
 function fillEmptyCellsRect(grid) {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const rows = grid.length;
-  const cols = grid[0].length;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
+  const R = grid.length, C = grid[0].length;
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
       if (grid[r][c] === null) {
         grid[r][c] = letters[randomInt(letters.length)];
       }
@@ -76,74 +74,105 @@ function fillEmptyCellsRect(grid) {
 }
 
 /**
- * 8) generateRectangularWordSearch
- *    - words: array van strings (in hoofdletters)
- *    - rows: aantal rijen in de grid
- *    - cols: aantal kolommen in de grid
- * 
- * Return: { grid, wordPositions }
- *   waarbij grid een 2D‐array is [rows][cols] met elke cel een letter A–Z,
- *   en wordPositions is een object mapping elk woord naar een array van [r,c].
+ * generateRectangularWordSearch
+ *   - words:       array of strings (already uppercase, no duplicates in caller)
+ *   - rows, cols:  grid dimensions
+ *   - highlight:   the single word that must be forced-in
+ *
+ * Returns { grid, wordPositions }, where:
+ *   - grid is a rows×cols 2D array of letters A–Z
+ *   - wordPositions is an object { [word]: [[r,c], …] }
  */
-function generateRectangularWordSearch(words, rows, cols) {
-  // Filter lege strings en duplicaten, en sorteer op aflopende lengte
-  const uniqueWords = Array.from(
-    new Set(words.filter((w) => w && w.length > 0))
-  ).sort((a, b) => b.length - a.length);
+function generateRectangularWordSearch(words, rows, cols, highlight) {
+  // 1) Filter out any empty or null, preserve insertion order and remove duplicates:
+  const filtered = [];
+  const seen = new Set();
+  for (let w of words) {
+    if (w && w.length > 0 && !seen.has(w)) {
+      seen.add(w);
+      filtered.push(w);
+    }
+  }
 
+  // 2) Separate out the “highlight” word (newly joined) so it goes first:
+  let newWord = null;
+  const rest = [];
+  for (let w of filtered) {
+    if (w === highlight) {
+      newWord = w;
+    } else {
+      rest.push(w);
+    }
+  }
+
+  // 3) Sort the “rest” by descending length (longest first), then append them.
+  const sortedRest = rest.sort((a, b) => b.length - a.length);
+  // Build the final placement list: [ newWord (if any), ...sortedRest ]
+  const uniqueWords = newWord ? [newWord, ...sortedRest] : sortedRest;
+
+  // 4) Create empty grid and an object to track each word’s coordinates:
   let grid = createEmptyGrid(rows, cols);
-  let wordPositions = {};
-  let failed = false;
+  const wordPositions = {};
 
-  // Probeer elk woord te plaatsen
-  for (let w of uniqueWords) {
+  // 5) Try placing each word in turn.  If it’s the “newWord” and it fails 50 tries,
+  //    we forcibly overwrite into a random location so it still appears.
+  for (let idx = 0; idx < uniqueWords.length; idx++) {
+    const w = uniqueWords[idx];
     let placed = false;
-    // Maximaal 50 willekeurige pogingen per woord
+
+    // 50 random attempts (normal placement):
     for (let attempt = 0; attempt < 50; attempt++) {
       const dir = DIRECTIONS[randomInt(DIRECTIONS.length)];
-      const row = randomInt(rows);
-      const col = randomInt(cols);
-      if (canPlaceWordRect(grid, w, row, col, dir)) {
-        wordPositions[w] = placeWordRect(grid, w, row, col, dir);
+      const r0 = randomInt(rows);
+      const c0 = randomInt(cols);
+      if (canPlaceWordRect(grid, w, r0, c0, dir)) {
+        wordPositions[w] = placeWordRect(grid, w, r0, c0, dir);
         placed = true;
         break;
       }
     }
+
+    // If not placed yet, AND this word is the “newWord,” force‐write:
+    if (!placed && newWord && w === newWord) {
+      // Pick a random start+direction; if it goes out of bounds, we simply stop writing
+      // at the boundary. This ensures every letter of newWord is at least attempted.
+      const dir = DIRECTIONS[randomInt(DIRECTIONS.length)];
+      const r0 = randomInt(rows);
+      const c0 = randomInt(cols);
+      const forcedPositions = [];
+      for (let i = 0; i < w.length; i++) {
+        const r2 = r0 + dir.y * i;
+        const c2 = c0 + dir.x * i;
+        if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols) break;
+        grid[r2][c2] = w[i];
+        forcedPositions.push([r2, c2]);
+      }
+      wordPositions[w] = forcedPositions;
+      placed = true;
+    }
+
+    // If still not placed (i.e. a non-highlight word failed), just skip it:
     if (!placed) {
-      failed = true;
-      break;
+      continue;
     }
   }
 
-  // Als een woord niet geplaatst kon worden (te weinig ruimte of te veel botsingen),
-  // kan je hier kiezen:
-  //  a) “grid = createEmptyGrid(rows, cols);” en opnieuw proberen (recursief of while‐loop),
-  //     maar dat is riskant als de ruimte echt te klein is.
-  //  b) Gewoon doorgaan en de resterende plaatsen random vullen (met overlappen van letters).
-  // In dit voorbeeld negeren we de mislukking en vullen we verder op:
-  //   (je ziet dan in de uiteindelijke puzzel misschien overlappende of incomplete plaatsen,
-  //    maar toch vult hij de hele achtergrond met letters).
-
-  // Vul lege cellen alsnog random op
+  // 6) Fill remaining empty cells with random letters:
   fillEmptyCellsRect(grid);
 
   return { grid, wordPositions };
 }
 
 export default function WordSearchBackground({
-  words,           // array van strings (in hoofdletters)
-  highlightWord,   // string (woonwoord in hoofdletters) of null
+  words,           // array of uppercase strings
+  highlightWord,   // uppercase string or null
 }) {
-  // 9) Celgrootte in pixels – MOET matchen met je CSS (24px ¬één van de dimensies)
   const cellSizePx = 24;
-
-  // 10) Houd actuele viewport‐afmetingen bij
   const [viewport, setViewport] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
 
-  // 11) Luister naar window resize om de grid‐dimensions te herberekenen
   useEffect(() => {
     function handleResize() {
       setViewport({
@@ -155,58 +184,56 @@ export default function WordSearchBackground({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 12) Bereken het aantal rijen en kolommen
   const cols = Math.ceil(viewport.width / cellSizePx);
   const rows = Math.ceil(viewport.height / cellSizePx);
 
-  // 13) Genereer de puzzle **alleen opnieuw** wanneer `words` of `rows` of `cols` verandert
+  // Only regenerate if words, rows, cols, or highlightWord change:
   const { grid, wordPositions } = useMemo(() => {
-    return generateRectangularWordSearch(words, rows, cols);
-  }, [words.join("|"), rows, cols]);
+    return generateRectangularWordSearch(words, rows, cols, highlightWord);
+  }, [words.join("|"), rows, cols, highlightWord]);
 
-  // 14) Bepaal welke coördinaten horen bij het woord dat we willen highlighten
-const highlightCoords = new Set();
-if (highlightWord && wordPositions[highlightWord]) {
-  for (let [r, c] of wordPositions[highlightWord]) {
-    highlightCoords.add(`${r},${c}`);
+  // Build a set of “highlight” coordinates (to add a special CSS class)
+  const highlightCoords = new Set();
+  if (highlightWord && wordPositions[highlightWord]) {
+    for (let [r, c] of wordPositions[highlightWord]) {
+      highlightCoords.add(`${r},${c}`);
+    }
   }
-}
 
-// 14b) Verzamel ALLE coördinaten die deel uitmaken van *een willekeurig* woord
-const wordCoords = useMemo(() => {
-  const set = new Set();
-  Object.values(wordPositions).forEach((coords) => {
-    coords.forEach(([r, c]) => set.add(`${r},${c}`));
-  });
-  return set;
-}, [wordPositions]);
+  // Build a set of all “any‐word” coordinates (so we can bold them)
+  const wordCoords = useMemo(() => {
+    const set = new Set();
+    Object.values(wordPositions).forEach((coords) => {
+      coords.forEach(([r, c]) => set.add(`${r},${c}`));
+    });
+    return set;
+  }, [wordPositions]);
 
-// 15) Render de volledige grid als achtergrond
-return (
-  <div className="wordsearch-background">
-    {grid.map((rowArr, rowIdx) => (
-      <div key={rowIdx} className="ws-row">
-        {rowArr.map((letter, colIdx) => {
-          const cellKey = `${rowIdx},${colIdx}`;
-          const isHighlighted = highlightCoords.has(cellKey);
-          const isWordCell = wordCoords.has(cellKey);
-          return (
-            <span
-              key={cellKey}
-              className={[
-                "ws-cell",
-                isWordCell && "ws-cell--bold",
-                isHighlighted && "ws-cell--highlight",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              {letter}
-            </span>
-          );
-        })}
-      </div>
-    ))}
-  </div>
-);
+  return (
+    <div className="wordsearch-background">
+      {grid.map((rowArr, rIdx) => (
+        <div key={rIdx} className="ws-row">
+          {rowArr.map((letter, cIdx) => {
+            const key = `${rIdx},${cIdx}`;
+            const isHighlighted = highlightCoords.has(key);
+            const isWordCell = wordCoords.has(key);
+            return (
+              <span
+                key={key}
+                className={[
+                  "ws-cell",
+                  isWordCell && "ws-cell--bold",
+                  isHighlighted && "ws-cell--highlight",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {letter}
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 }

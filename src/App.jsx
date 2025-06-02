@@ -144,7 +144,7 @@ export default function App() {
       /> 
      {/* 3) Render de WordSearch‐achtergrond op de hele pagina */}
       <WordSearchBackground
-        words={attendeeNames}
+        words={attendeeNames.slice().reverse()}
         highlightWord={newlyJoinedName}
       />
 
