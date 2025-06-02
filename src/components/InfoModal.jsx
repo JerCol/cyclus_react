@@ -1,12 +1,46 @@
 // src/components/InfoModal.jsx
-import React from "react";
-import "../styles/modal.css"; // make sure this file is present
-import concept from "../assets/concept.png";  // ⬅️ update the path/name
-import SlotMachine from "./ArtistPicker";      //  ← new line
+import React, { useEffect, useState } from "react";
+import "../styles/modal.css"; // ensure this file is present
+import concept from "../assets/concept.png";
 import ArtistPicker from "./ArtistPicker";
-
+import { supabase } from "../lib/supabaseClient";
 
 export default function InfoModal({ onClose }) {
+  const [aboutText, setAboutText] = useState("");
+  const [footerText, setFooterText] = useState("");
+
+  useEffect(() => {
+    const fetchCopy = async () => {
+      const { data, error } = await supabase
+        .from("text")
+        .select("paragraph, footer")
+        .eq("name", "about_us")
+        .single();
+
+      if (!error && data) {
+        setAboutText(data.paragraph || "");
+        setFooterText(data.footer || "");
+      } else {
+        console.error("Supabase fetch error:", error);
+      }
+    };
+
+    fetchCopy();
+  }, []);
+
+  const renderAboutParagraphs = () => {
+    if (!aboutText) return <p>Loading…</p>;
+
+     return aboutText
+      .split(/\n\s*\n|\n/)
+      .filter(Boolean)
+      .map((para, idx) => (
+        <p key={idx} style={{ fontSize: "0.75rem" }}>
+          {para.trim()}
+        </p>
+      ));
+}
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -14,16 +48,17 @@ export default function InfoModal({ onClose }) {
         <button className="join-button close-button" onClick={onClose}>
           &times;
         </button>
-        
 
         <div className="modal-body">
           {/* Main heading */}
           <h2>CYCLUS 1</h2>
-          
+
           {/* Event details */}
           <p>
-            <strong>Date:</strong> 25.07.2025 (8pm-6am)<br />
-            <strong>Location:</strong> <a
+            <strong>Date:</strong> 25.07.2025 (8pm-6am)
+            <br />
+            <strong>Location:</strong>{" "}
+            <a
               href="https://maps.app.goo.gl/M7cumcAkbPHygRAW6"
               target="_blank"
               rel="noopener noreferrer"
@@ -31,19 +66,23 @@ export default function InfoModal({ onClose }) {
               Brussel (Ganshoren)
             </a>
           </p>
-         
 
-          {/* NEW – poster / hero image */}
+          {/* Poster / hero image */}
           <img
             src={concept}
             alt="Cyclus event poster"
             className="modal-image"
           />
 
+          {/* Artist picker */}
           <ArtistPicker />
 
           
-          {/* Footer & WhatsApp link */}
+
+          {/* Footer text from Supabase */}
+          
+
+          {/* WhatsApp link */}
           <p>
             For the latest updates,{" "}
             <a
@@ -54,8 +93,19 @@ export default function InfoModal({ onClose }) {
               follow our channel
             </a>
           </p>
-
-
+          {/* Expandable About Us section */}
+          <details className="about-section">
+            <summary>About Us</summary>
+            {renderAboutParagraphs()}
+            {footerText && (
+            <p
+              className="about-footer"
+              style={{ fontStyle: "italic", fontSize: "0.6rem" }}
+            >
+              {footerText}
+            </p>
+          )}
+          </details>
         </div>
       </div>
     </div>
