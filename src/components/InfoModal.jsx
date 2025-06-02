@@ -22,7 +22,7 @@ export default function InfoModal({ onClose }) {
           
           {/* Event details */}
           <p>
-            <strong>Date:</strong> 25.07.2025<br />
+            <strong>Date:</strong> 25.07.2025 (8pm-6am)<br />
             <strong>Location:</strong> <a
               href="https://maps.app.goo.gl/M7cumcAkbPHygRAW6"
               target="_blank"

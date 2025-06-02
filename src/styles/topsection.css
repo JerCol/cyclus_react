@@ -6,7 +6,7 @@
 .bar.top {
   position: relative;            /* anchor for any absolutely‐positioned children */
   display: flex;
-  justify-content: flex-end;     /* right‐align any normal‐flow children (e.g. .attendee-count) */
+  justify-content: center;     /* right‐align any normal‐flow children (e.g. .attendee-count) */
   align-items: center;
   padding: 0.5rem 1rem;          
   /* optional: add a subtle border or shadow at the bottom */
@@ -18,9 +18,9 @@
    2) Center the “INFO” button absolutely
    —————————————————————————————————— */
 .bar.top .info-button {
-  position: absolute;
+  position: static;
   left: 50%;
-  transform: translateX(-50%);
+  transform: none
   /* Because the parent (.bar.top) is align‐items:center, 
      the button is already vertically centered. */
 }
@@ -42,6 +42,11 @@
   opacity: 0;
   transition: opacity 0.4s;
   pointer-events: none;     /* so it doesn’t intercept clicks (optional) */
+}
+
+
+.bar.top .counter{           /* push counter to the far right */
+  margin-left: auto;
 }
 
 /* When .visible is added to the class list, fade it in */

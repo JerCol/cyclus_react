@@ -67,7 +67,11 @@ html,body,#root{
   flex-direction:column;
   height:100%;      /* equals 100dvh / 100svh / 100vh set above */
 }
-
+/* App.css (or anywhere after .page is declared) */
+.page{
+  width: 100vw;      /* stretch to the full screen width */
+  max-width: 100vw;  /* prevent accidental shrinking */
+}
 /* 10 % / 80 % / 10 % split via flex ratios 1-8-1 */
 .top{
   flex:0 0 10%;
