@@ -11,6 +11,12 @@
   font-family: "Roboto", sans-serif;
 }
 
+/* Put this after the @import */
+.modal-content,
+.modal-content * {            /* the * lets inputs & buttons inherit too */
+  font-family: "Roboto", sans-serif;
+}
+
 
 /* poster sizing – replace the earlier .modal-image rule */
 .modal-image {
@@ -507,3 +513,7 @@
   transform: translateY(0);
 }
 
+.modal-body {
+  max-height: 80vh;
+  overflow-y: auto;
+}

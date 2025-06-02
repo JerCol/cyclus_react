@@ -2,17 +2,16 @@
 import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/modal.css";
-import { ExternalLink } from "lucide-react";   // add this line
+import { ExternalLink } from "lucide-react";
 
-
-export default function ArtistPicker() {
+export default function ArtistPicker({ onScrollBottom }) {
   /* ───────────── state ───────────── */
   const [present, setPresent] = useState([]);
-  const [all, setAll]         = useState([]);
-  const [reels, setReels]     = useState([]);
-  const [fixed, setFixed]     = useState([]);
+  const [all, setAll] = useState([]);
+  const [reels, setReels] = useState([]);
+  const [fixed, setFixed] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [maxLen, setMaxLen]   = useState(8);
+  const [maxLen, setMaxLen] = useState(8);
   const timers = useRef([]);
 
   /* ───────────── fetch once ───────────── */
@@ -28,15 +27,13 @@ export default function ArtistPicker() {
         return;
       }
 
-      const pres = data.filter(r => r.present);
+      const pres = data.filter((r) => r.present);
       setPresent(pres);
       setAll(data);
 
       setReels(Array(pres.length).fill(null));
       setFixed(Array(pres.length).fill(false));
-      setMaxLen(
-        data.reduce((acc, r) => Math.max(acc, r.name?.length || 0), 1)
-      );
+      setMaxLen(data.reduce((acc, r) => Math.max(acc, r.name?.length || 0), 1));
 
       setLoading(false);
     })();
@@ -45,20 +42,20 @@ export default function ArtistPicker() {
   }, []);
 
   /* ───────────── helpers ───────────── */
-  const delay = ms => new Promise(res => setTimeout(res, ms));
+  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-  const markFixed = idx =>
-    setFixed(prev => {
+  const markFixed = (idx) =>
+    setFixed((prev) => {
       const copy = [...prev];
       copy[idx] = true;
       return copy;
     });
 
   const spinOneReel = (slotIdx, finalArtist, frames = 25, frameMs = 90) =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       let tick = 0;
       const id = setInterval(() => {
-        setReels(prev => {
+        setReels((prev) => {
           const copy = [...prev];
           copy[slotIdx] = all[Math.floor(Math.random() * all.length)];
           return copy;
@@ -66,7 +63,7 @@ export default function ArtistPicker() {
 
         if (++tick >= frames) {
           clearInterval(id);
-          setReels(prev => {
+          setReels((prev) => {
             const copy = [...prev];
             copy[slotIdx] = finalArtist;
             return copy;
@@ -98,19 +95,25 @@ export default function ArtistPicker() {
   };
 
   /* ───────────── render ───────────── */
-  if (loading)               return <p>Loading artists…</p>;
-  if (present.length === 0)  return <p>No artists marked “present”.</p>;
+  if (loading) return <p>Loading artists…</p>;
+  if (present.length === 0) return <p>No artists marked “present”.</p>;
 
   return (
     <div className="slot-machine-wrapper">
-      <button className="join-button" onClick={spin}>
+      <button
+        className="join-button"
+        onClick={() => {
+          onScrollBottom?.(); // scroll first
+          spin(); // then start spinning
+        }}
+      >
         Discover Artists
       </button>
 
       <div className="slotmachine">
         {reels.map((artist, i) => {
-          const isFixed   = fixed[i];
-          const hasLink   = isFixed && artist && artist.link;
+          const isFixed = fixed[i];
+          const hasLink = isFixed && artist && artist.link;
 
           return (
             <div
@@ -126,10 +129,11 @@ export default function ArtistPicker() {
                     rel="noopener noreferrer"
                     aria-label={`Open ${artist.name}`}
                   >
-                    {artist.name}&nbsp;<ExternalLink
-                      size={14}          /* tiny and subtle */
-                      strokeWidth={1.5}  /* thinner line */
-                      className="opacity-60"   /* tone it down */
+                    {artist.name}&nbsp;
+                    <ExternalLink
+                      size={14}
+                      strokeWidth={1.5}
+                      className="opacity-60"
                       aria-hidden="true"
                     />
                   </a>

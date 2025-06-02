@@ -1,5 +1,4 @@
-// src/components/InfoModal.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/modal.css"; // ensure this file is present
 import concept from "../assets/concept.png";
 import ArtistPicker from "./ArtistPicker";
@@ -8,6 +7,8 @@ import { supabase } from "../lib/supabaseClient";
 export default function InfoModal({ onClose }) {
   const [aboutText, setAboutText] = useState("");
   const [footerText, setFooterText] = useState("");
+  const bodyRef = useRef(null);          // container that scrolls
+  const bottomRef = useRef(null);        // sentinel we scroll into view
 
   useEffect(() => {
     const fetchCopy = async () => {
@@ -31,7 +32,7 @@ export default function InfoModal({ onClose }) {
   const renderAboutParagraphs = () => {
     if (!aboutText) return <p>Loading…</p>;
 
-     return aboutText
+    return aboutText
       .split(/\n\s*\n|\n/)
       .filter(Boolean)
       .map((para, idx) => (
@@ -39,7 +40,7 @@ export default function InfoModal({ onClose }) {
           {para.trim()}
         </p>
       ));
-}
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -49,7 +50,8 @@ export default function InfoModal({ onClose }) {
           &times;
         </button>
 
-        <div className="modal-body">
+        {/* Make sure .modal-body has overflow-y: auto and a max-height in CSS */}
+        <div className="modal-body" ref={bodyRef}>
           {/* Main heading */}
           <h2>CYCLUS 1</h2>
 
@@ -75,12 +77,12 @@ export default function InfoModal({ onClose }) {
           />
 
           {/* Artist picker */}
-          <ArtistPicker />
-
-          
-
-          {/* Footer text from Supabase */}
-          
+          <ArtistPicker
+            onScrollBottom={() => {
+              // scroll the sentinel into view; this works regardless of container size
+              bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
 
           {/* WhatsApp link */}
           <p>
@@ -93,19 +95,23 @@ export default function InfoModal({ onClose }) {
               follow our channel
             </a>
           </p>
+
           {/* Expandable About Us section */}
           <details className="about-section">
             <summary>About Us</summary>
             {renderAboutParagraphs()}
             {footerText && (
-            <p
-              className="about-footer"
-              style={{ fontStyle: "italic", fontSize: "0.6rem" }}
-            >
-              {footerText}
-            </p>
-          )}
+              <p
+                className="about-footer"
+                style={{ fontStyle: "italic", fontSize: "0.6rem" }}
+              >
+                {footerText}
+              </p>
+            )}
           </details>
+
+          {/* sentinel element to scroll to */}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div>
