@@ -44,8 +44,7 @@
 /* bold + red + visibly heavier */
 .ws-cell--bold {
   font-weight: 200;          /* heaviest cut available */
-  font-size: 1.0em;          /* 10 % bigger */
-  -webkit-text-stroke: 1px currentColor; /* extra thickness */
+  -webkit-text-stroke: 0.5px currentColor; /* extra thickness */
   text-shadow: 0 0 1px currentColor;     /* fallback for browsers w/o stroke */
 }
 
