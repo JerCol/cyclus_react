@@ -3,6 +3,7 @@
 html,body,#root{
   margin:0;
   height:100%;          /* anchor the flexbox to “full page” */
+  overscroll-behavior: none;/* ← also disables any rubber‐band on iOS */
 }
 
 
