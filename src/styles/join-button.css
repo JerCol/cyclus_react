@@ -1,29 +1,38 @@
 /* ------------------------------------------------------------ */
-/*  SHARED BUTTON BASE                                          */
+/*  0 ·  Register the animatable custom property                */
+/* ------------------------------------------------------------ */
+@property --scale {
+  syntax: "<number>";   /* it will hold plain numbers like 1 or 1.15 */
+  inherits: false;
+  initial-value: 1;
+}
+
+/* ------------------------------------------------------------ */
+/*  1 ·  Shared button base (JOIN & INFO)                       */
 /* ------------------------------------------------------------ */
 .join-button,
 .info-button {
-  /* appearance ------------------------------------------------ */
+  /* appearance ----------------------------------------------- */
   border: 2px solid #000;
   background: radial-gradient(circle at 30% 30%,
                #fff 0%, #f7f7f7 60%, #e7e7e7 100%);
   border-radius: 999px;
-  font-size: 1.5rem;          /* overridden for .info-button below */
+  font-size: 1.5rem;          /* .info-button overrides below */
   color: #111;
   text-shadow: 0 1px 0 #fff;
   box-shadow:
-    0 6px   0 #000,          /* hard rim  */
+    0  6px  0 #000,          /* hard rim  */
     0 10px 18px rgba(0,0,0,.3);
   cursor: pointer;
 
   /* animation plumbing --------------------------------------- */
-  --scale: 1;                /* <<–– single source of truth */
+  --scale: 1;                            /* single source of truth */
   transform: scale(var(--scale));
-  transition: transform .2s ease;   /* smooth hover/press flick */
+  transition: transform .2s ease;        /* smooth hover/press */
 }
 
 /* ------------------------------------------------------------ */
-/*  INTERACTIVE STATES                                          */
+/* 2 ·  Interactive states                                      */
 /* ------------------------------------------------------------ */
 .join-button:hover,
 .info-button:hover {
@@ -35,14 +44,14 @@
 
 .join-button:active,
 .info-button:active {
-  --scale: 0.96;                   /* pressed-in */
+  --scale: 0.96;                         /* pressed-in */
   box-shadow:
     0  4px 0 #000,
     0  4px 10px rgba(0,0,0,.25);
 }
 
 /* ------------------------------------------------------------ */
-/*  OPTIONAL “BREATHING” ANIMATION                              */
+/* 3 ·  Optional breathing animation                            */
 /* ------------------------------------------------------------ */
 @media (prefers-reduced-motion:no-preference) {
   .join-button,
@@ -57,7 +66,7 @@
 }
 
 /* ------------------------------------------------------------ */
-/*  SIZE VARIANTS & INFO-BUTTON TWEAKS                          */
+/* 4 ·  Size variant & INFO tweaks                              */
 /* ------------------------------------------------------------ */
 .join-button.large {
   font-size: 1.3rem;
@@ -65,5 +74,5 @@
 }
 
 .info-button {
-  font-size: 1.1rem;   /* had its own size in your original CSS */
+  font-size: 1.1rem;   /* matches your original design */
 }
