@@ -2,15 +2,14 @@
 *,*::before,*::after{box-sizing:border-box;}
 html,body,#root{
   margin:0;
-  height:100%;          /* anchor the flexbox to “full page” */
+  height: calc(100vh + 1px); /* give Chrome a 1px buffer */
+  overflow: hidden;
   overscroll-behavior: none;/* ← also disables any rubber‐band on iOS */
 }
-
 
 .bg-ripple {
   position: fixed;
   inset: 0;                     /* cover the viewport */
-  overflow: hidden;
   pointer-events: none;         /* clicks pass through */
 }
 
@@ -96,7 +95,6 @@ html,body,#root{
 .middle{
   flex:1 1 0;
   min-height:0;
-  overflow:hidden;
 
   /* --- NEW / RESTORED lines --- */
   display:flex;             /* turn the bar into a flexbox            */
