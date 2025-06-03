@@ -3,12 +3,10 @@
 html,body,#root{
   margin:0;
   height:100%;          /* anchor the flexbox to “full page” */
-  overscroll-behavior: none;/* ← also disables any rubber‐band on iOS */
+  overscroll-behavior:none;  /* prevents rubber-band on iOS    */
 }
-
 html, body, #root {
   height: calc(100vh + 1px); /* give Chrome a 1px buffer */
-  overflow: hidden;
 }
 
 .bg-ripple {
@@ -16,11 +14,6 @@ html, body, #root {
   inset: 0;                     /* cover the viewport */
   overflow: hidden;
   pointer-events: none;         /* clicks pass through */
-}
-
-.bg-ripple {
-  will-change: transform, opacity;
-  /* or: transform: translateZ(0); */
 }
 .bg-ripple span {
   position: absolute;
@@ -51,7 +44,7 @@ html, body, #root {
   background-size: cover;   /* scale the image to fill screen */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -1;              /* put it behind the wordsearch (z‐index -1) */
+  z-index: -2;              /* put it behind the wordsearch (z‐index -1) */
 }
 /* ------------------------------------------------------------------ */
 /* DRAWING WRAPPER + GRID                                             */
@@ -63,12 +56,9 @@ html, body, #root {
    `svh` = “small” viewport height (iOS 15-16)
    fall back to plain `vh` for older desktop browsers.
 */
-:root {
-  height: 100vh;
-}
-@supports (height: 100dvh) {
-  /* If you really want to keep the “dynamic‐viewport” hack for Chrome: */
-  :root { height: 100dvh; }
+:root{height:100dvh;}
+@supports(height:100svh){
+  :root{height:100svh;}
 }
 
 /* ---------- 3–bars layout */
