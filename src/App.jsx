@@ -1,7 +1,6 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import drawing from "./assets/drawing.png";   // or "/drawing.png" if it’s in public/
-import bg        from './assets/background.png';
+import bg        from './assets/background.webp';
 import RippleBackground from './RippleBackground.jsx';
 import JoinButton from "./components/JoinButton.jsx";
 import "./styles/join-button.css";  // ensure your button skin is loaded

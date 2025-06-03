@@ -1,4 +1,4 @@
-import drawing from "../assets/drawing.png";
+import drawing from "../assets/drawing.webp";
 
 export default function MiddleSection() {
   return (

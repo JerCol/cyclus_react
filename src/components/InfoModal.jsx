@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../styles/modal.css"; // ensure this file is present
-import concept from "../assets/concept.png";
+import concept from "../assets/concept.webp";
 import ArtistPicker from "./ArtistPicker";
 import { supabase } from "../lib/supabaseClient";
 
