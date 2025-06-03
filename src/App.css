@@ -3,6 +3,7 @@
 html,body,#root{
   margin:0;
   height:100%;          /* anchor the flexbox to “full page” */
+  overscroll-behavior: none;/* ← also disables any rubber‐band on iOS */
 }
 
 
@@ -57,7 +58,13 @@ html,body,#root{
    `svh` = “small” viewport height (iOS 15-16)
    fall back to plain `vh` for older desktop browsers.
 */
-:root { height: 100vh; }
+:root {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  /* If you really want to keep the “dynamic‐viewport” hack for Chrome: */
+  :root { height: 100dvh; }
+}
 
 /* ---------- 3–bars layout */
 .page{
