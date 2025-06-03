@@ -3,8 +3,6 @@
 html,body,#root{
   margin:0;
   height:100%;          /* anchor the flexbox to “full page” */
-  overflow:hidden;      /* <-- kill scrolling at its source   */
-  overscroll-behavior:none;  /* prevents rubber-band on iOS    */
 }
 
 
@@ -12,8 +10,12 @@ html,body,#root{
   position: fixed;
   inset: 0;                     /* cover the viewport */
   overflow: hidden;
-  z-index: -1;                  /* sits behind everything */
   pointer-events: none;         /* clicks pass through */
+}
+
+.bg-ripple {
+  will-change: transform, opacity;
+  /* or: transform: translateZ(0); */
 }
 .bg-ripple span {
   position: absolute;
@@ -44,7 +46,7 @@ html,body,#root{
   background-size: cover;   /* scale the image to fill screen */
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -2;              /* put it behind the wordsearch (z‐index -1) */
+  z-index: -1;              /* put it behind the wordsearch (z‐index -1) */
 }
 /* ------------------------------------------------------------------ */
 /* DRAWING WRAPPER + GRID                                             */
@@ -56,10 +58,7 @@ html,body,#root{
    `svh` = “small” viewport height (iOS 15-16)
    fall back to plain `vh` for older desktop browsers.
 */
-:root{height:100dvh;}
-@supports(height:100svh){
-  :root{height:100svh;}
-}
+:root { height: 100vh; }
 
 /* ---------- 3–bars layout */
 .page{
