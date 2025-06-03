@@ -1,11 +1,6 @@
 /* ------------------------------------------------------------ */
 /*  0 ·  Register the animatable custom property                */
 /* ------------------------------------------------------------ */
-@property --scale {
-  syntax: "<number>";   /* it will hold plain numbers like 1 or 1.15 */
-  inherits: false;
-  initial-value: 1;
-}
 
 /* ------------------------------------------------------------ */
 /*  1 ·  Shared button base (JOIN & INFO)                       */
@@ -26,9 +21,7 @@
   cursor: pointer;
 
   /* animation plumbing --------------------------------------- */
-  --scale: 1;                            /* single source of truth */
-  transform: scale(var(--scale));
-  transition: transform .2s ease;        /* smooth hover/press */
+
 }
 
 /* ------------------------------------------------------------ */
@@ -36,7 +29,6 @@
 /* ------------------------------------------------------------ */
 .join-button:hover,
 .info-button:hover {
-  --scale: 1.08;
   box-shadow:
     0 12px 0 #000,
     0 16px 25px rgba(0,0,0,.35);
@@ -44,7 +36,6 @@
 
 .join-button:active,
 .info-button:active {
-  --scale: 0.96;                         /* pressed-in */
   box-shadow:
     0  4px 0 #000,
     0  4px 10px rgba(0,0,0,.25);
@@ -57,11 +48,6 @@
   .join-button,
   .info-button {
     animation: breathe 4s ease-in-out infinite;
-  }
-
-  @keyframes breathe {
-    0%, 100% { --scale: 1;    }
-    50%      { --scale: 1.15; }
   }
 }
 
