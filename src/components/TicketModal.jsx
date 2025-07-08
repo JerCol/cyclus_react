@@ -66,11 +66,15 @@ export default function InfoModal({ onClose }) {
     const row = links.find((r) => r.name === name);
     if (!row) return;
 
-    // 1) open external payment link in new tab
-    window.open(row.link, "_blank");
+    // 1) generate / show the PDF first (counts as the user gesture)
+    downloadPosterAsPDF();
 
-    // 2) slight delay so the new tab grabs focus first
-    setTimeout(downloadPosterAsPDF, 400);
+    // 2) then open the external payment link a moment later
+    //    (iOS Safari blocks only *additional* pop‑ups that are not
+    //     tied to the original gesture; a short delay still works)
+    setTimeout(() => {
+      window.open(row.link, "_blank");
+    }, 600);
   }
 
   return (
