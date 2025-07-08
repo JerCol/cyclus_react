@@ -18,33 +18,46 @@ function downloadPosterAsPDF() {
   img.crossOrigin = "anonymous";
   img.src = concept;
   img.onload = () => {
-    // 1. Flatten onto white canvas to eliminate transparency
+    /* 1.   Draw onto a white canvas so there is never transparency */
     const canvas = document.createElement("canvas");
     canvas.width = img.width;
     canvas.height = img.height;
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
 
-    // 2. Export canvas as JPEG (no alpha)
-    const jpegData = canvas.toDataURL("image/jpeg", 0.95);
+    /* 2.   Export canvas → JPEG data URL (no alpha) */
+    const jpgData = canvas.toDataURL("image/jpeg", 1.0);
 
-    // 3. Build PDF the same size as the image
-    const orientation = canvas.width > canvas.height ? "l" : "p";
+    /* 3.   Build the PDF */
     const pdf = new jsPDF({
-      orientation,
+      orientation: img.width > img.height ? "l" : "p",
       unit: "px",
-      format: [canvas.width, canvas.height],
+      format: [img.width, img.height],
     });
-    pdf.addImage(jpegData, "JPEG", 0, 0, canvas.width, canvas.height);
 
-    // 4. Download logic
+    // full‑page white already, but embed the image anyway
+    pdf.addImage(jpgData, "JPEG", 0, 0, img.width, img.height);
+
+    /* 4.   Overlay THANK‑YOU banner at the vertical centre */
+    pdf.setFontSize(48);
+    pdf.setTextColor(255, 215, 0); // golden yellow
+    pdf.setFont("helvetica", "bold");
+    pdf.text(
+      "THANKS FOR YOUR SUPPORT",
+      img.width / 2,
+      img.height / 2,
+      { align: "center" }
+    );
+
+    /* 5.   Download / share */
+    const blob = pdf.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+
     if (isiOS) {
-      // iOS Safari: use <a download> so user gets the share‑sheet
-      const url = pdf.output("bloburl");
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = "cyclus_ticket.pdf";
       document.body.appendChild(a);
       a.click();
