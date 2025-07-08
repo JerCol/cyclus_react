@@ -1,86 +1,77 @@
-/* src/components/InfoModal.jsx – two‑button modal fetching payment_links table
-   Names expected in DB: "support_ticket", "booster_ticket" */
+// src/components/InfoModal.jsx – two‑button ticket modal with iOS‑safe PDF download
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
 import concept from "../assets/concept.webp";
 import JoinButton from "./JoinButton";
-import { jsPDF } from "jspdf";           // ensure: npm i jspdf
+import { jsPDF } from "jspdf";            // npm i jspdf
 import { supabase } from "../lib/supabaseClient";
 
 /**
- * Converts `concept.webp` to a one‑page PDF *with white background*
- * and triggers an immediate download.
+ * Convert the poster to a PDF and either:
+ *   • trigger a direct download (desktop & Android)
+ *   • open it in a new tab for iOS Safari, which lacks download support
  */
-async function downloadPosterAsPDF() {
+function downloadPosterAsPDF() {
   const img = new Image();
+  img.crossOrigin = "anonymous";
   img.src = concept;
-  await new Promise((res) => (img.onload = res));
 
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0);
-  const dataURL = canvas.toDataURL("image/jpeg", 1.0);
+  img.onload = () => {
+    const pdf = new jsPDF({
+      orientation: img.width > img.height ? "l" : "p",
+      unit: "px",
+      format: [img.width, img.height],
+    });
 
-  const pdf = new jsPDF({
-    orientation: img.width > img.height ? "l" : "p",
-    unit: "px",
-    format: [img.width, img.height],
-  });
-  pdf.addImage(dataURL, "JPEG", 0, 0, img.width, img.height);
-  pdf.save("cyclus_ticket.pdf");
+    /* paint white background to avoid black fill behind transparencies */
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(0, 0, img.width, img.height, "F");
+
+    pdf.addImage(img, "WEBP", 0, 0, img.width, img.height);
+
+    const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
+
+    if (isiOS) {
+      // iOS Safari can’t download blobs – open in a new tab instead
+      const blobUrl = pdf.output("bloburl");
+      window.open(blobUrl, "_blank");
+    } else {
+      pdf.save("cyclus_ticket.pdf");
+    }
+  };
 }
 
-// Price labels stay the same
-const PRICE_LABEL = {
-  support_ticket: "€10",
-  booster_ticket: "€15",
-};
-
-// Display text for button labels (uppercase, no "Ticket")
-const DISPLAY_LABEL = {
-  support_ticket: "SUPPORT",
-  booster_ticket: "BOOSTER",
-};
-
 export default function InfoModal({ onClose }) {
-  const [links, setLinks] = useState({});
+  const [links, setLinks] = useState([]); // [{ name, link }]
 
-  // Fetch payment links for the two known ticket names
+  /* Fetch the two payment links once */
   useEffect(() => {
-    const fetchLinks = async () => {
+    (async () => {
       const { data, error } = await supabase
         .from("payment_links")
         .select("name, link")
         .in("name", ["support_ticket", "booster_ticket"]);
 
-      if (!error && data) {
-        const map = {};
-        data.forEach(({ name, link }) => {
-          map[name] = link;
-        });
-        setLinks(map);
-      } else {
+      if (error) {
         console.error("Supabase payment_links fetch error:", error);
+      } else {
+        setLinks(data);
       }
-    };
-
-    fetchLinks();
+    })();
   }, []);
 
-  const handleTicketClick = (ticketName) => {
-    const url = links[ticketName];
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-    downloadPosterAsPDF();
-  };
+  /* Handler – opens the payment link, then downloads/show PDF */
+  function handleTicket(name) {
+    const row = links.find((r) => r.name === name);
+    if (!row) return;
 
-  const TICKETS = ["support_ticket", "booster_ticket"];
+    // 1) open external payment link in new tab
+    window.open(row.link, "_blank");
+
+    // 2) slight delay so the new tab grabs focus first
+    setTimeout(downloadPosterAsPDF, 400);
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -89,12 +80,17 @@ export default function InfoModal({ onClose }) {
           &times;
         </button>
 
-        <div className="modal-body ticket-buttons">
-          {TICKETS.map((name) => (
-            <JoinButton key={name} onClick={() => handleTicketClick(name)}>
-              {DISPLAY_LABEL[name]} =&nbsp;{PRICE_LABEL[name]}
+        <div className="modal-body">
+          {/* Vertically stacked ticket buttons */}
+          <div className="ticket-buttons">
+            <JoinButton onClick={() => handleTicket("support_ticket")}> 
+              SUPPORT = €10
             </JoinButton>
-          ))}
+
+            <JoinButton onClick={() => handleTicket("booster_ticket")}> 
+              BOOSTER = €15
+            </JoinButton>
+          </div>
         </div>
       </div>
     </div>

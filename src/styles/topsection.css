@@ -61,5 +61,5 @@
   margin-right: 0.5rem;
 }
 .support-button {
-  font-size: 0.90rem; /* adjust as needed */
+  font-size: 0.9rem !important;  /* smaller text than default join-button */
 }
