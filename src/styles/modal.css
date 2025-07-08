@@ -39,6 +39,7 @@
   z-index: 1000;
 }
 
+
 /* white card in the centre */
 .modal-content {
   position: relative;
@@ -514,4 +515,21 @@
 .modal-body {
   max-height: 80vh;
   overflow-y: auto;
+}
+
+/* src/styles/modal.css – extra rules specifically for the two‑button Ticket modal */
+
+/* Stack the ticket buttons vertically and centre them */
+.ticket-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;            /* minimal space between buttons */
+}
+
+/* Tighten up the padding so text sits closer to the border */
+.ticket-buttons .join-button,
+.ticket-buttons .join-button.large {
+  padding: 0.35rem 0.75rem;   /* adjust to taste */
+  line-height: 1;             /* remove extra vertical whitespace */
 }

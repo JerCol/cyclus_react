@@ -1,39 +1,49 @@
+/* src/App.jsx – React‑Router enabled version */
+
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import bg        from './assets/background.webp';
-import RippleBackground from './RippleBackground.jsx';
-import JoinButton from "./components/JoinButton.jsx";
-import "./styles/join-button.css";  // ensure your button skin is loaded
-import "./styles/modal.css"; 
-import "./styles/info-button.css"; 
+import { Routes, Route, useNavigate } from "react-router-dom";
 
-import TopSection from "./components/TopSection";
-import MiddleSection from "./components/MiddleSection";
-import BottomSection from "./components/BottomSection";
-import JoinForm from "./components/JoinForm";
-import ThankYouModal from "./components/ThankYouModal";
-import InfoModal from "./components/InfoModal"; // <— import your new InfoModal
-import { supabase } from "./lib/supabaseClient"; 
+/* ─── assets & visual FX ─────────────────────────────────── */
+import bg from "./assets/background.webp";
+import RippleBackground from "./RippleBackground.jsx";
 import WordSearchBackground from "./components/WordSearchBackground";
 
+/* ─── shared UI components ───────────────────────────────── */
+import TopSection      from "./components/TopSection";
+import MiddleSection   from "./components/MiddleSection";
+import BottomSection   from "./components/BottomSection";
+import JoinForm        from "./components/JoinForm";
+import ThankYouModal   from "./components/ThankYouModal";
+import InfoModal       from "./components/InfoModal";
+import TicketModal     from "./components/TicketModal"
+import JoinButton      from "./components/JoinButton.jsx"; /* (kept for completeness) */
 
+/* ─── stylesheets ────────────────────────────────────────── */
+import "./styles/join-button.css";
+import "./styles/modal.css";
+import "./styles/info-button.css";
 
+/* ─── data layer ─────────────────────────────────────────── */
+import { supabase } from "./lib/supabaseClient";
 
-
+/* ==========================================================
+   MAIN APP COMPONENT
+   ========================================================== */
 export default function App() {
-  
-  const [showForm, setShowForm] = useState(false);
+  /* ── page‑wide state ───────────────────────────────────── */
+  const [showForm,   setShowForm]   = useState(false);
   const [showThanks, setShowThanks] = useState(false);
-  const [showInfo, setShowInfo] = useState(false); // <— new state for Info
+  const [showInfo,   setShowInfo]   = useState(false);
   const [attendeeCount, setAttendeeCount] = useState(0);
-  const [attendeeNames, setAttendeeNames] = useState([]); 
+  const [attendeeNames, setAttendeeNames] = useState([]);
   const [newlyJoinedName, setNewlyJoinedName] = useState(null);
 
-
-    useEffect(() => {
+  /* ── fetch attendees once at mount ─────────────────────── */
+  useEffect(() => {
     async function fetchAttendeesAndCount() {
-      // 1a) Haal de count op
-      let { count, error: countError } = await supabase
+      /* 1) Count rows */
+      const { count, error: countError } = await supabase
         .from("attendees")
         .select("*", { head: true, count: "exact" });
       if (countError) {
@@ -43,68 +53,56 @@ export default function App() {
         setAttendeeCount(count);
       }
 
-      // 1b) Haal alle namen op uit de tabel
-      let { data: rows, error: selectError } = await supabase
+      /* 2) Fetch names */
+      const { data: rows, error: selectError } = await supabase
         .from("attendees")
         .select("name");
       if (selectError) {
         console.error("Error fetching attendee names:", selectError.message);
         setAttendeeNames([]);
       } else {
-        // rows is array van objecten { name: "…" }
         setAttendeeNames(rows.map((r) => r.name.toUpperCase()));
       }
     }
 
     fetchAttendeesAndCount();
   }, []);
-  const handleJoinClick = () => setShowForm(true);
-  const handleInfoClick = () => setShowInfo(true);
+
+  /* ── handlers for various UI actions ───────────────────── */
+  const handleJoinClick  = () => setShowForm(true);
+  const handleInfoClick  = () => setShowInfo(true);
 
   const handleFormConfirm = async ({ nick, addCal }) => {
-    // do whatever you like with `nick`
-
+    /* Insert attendee */
     try {
-       // Zet de nickname om in hoofdletters, want we willen de woordzoeker zonder hoofdletter‐gevoeligheid
       const upperNick = nick.trim().toUpperCase() || "ANONYMOUS";
-
-      // 2a) Invoegen in Supabase
       const newAttendee = {
         name: upperNick,
         event_added: addCal === "yes",
       };
-      const { data, error } = await supabase
-        .from("attendees")
-        .insert([newAttendee]);
-
+      const { error } = await supabase.from("attendees").insert([newAttendee]);
       if (error) {
         console.error("Error inserting attendee:", error.message);
       } else {
-        // Succesvol: update attendeeCount en attendeeNames
         setAttendeeCount((prev) => (prev === null ? 1 : prev + 1));
-        setAttendeeNames((prevArray) => [...prevArray, upperNick]);
+        setAttendeeNames((prev) => [...prev, upperNick]);
         setNewlyJoinedName(upperNick);
       }
     } catch (err) {
       console.error("Unexpected error when inserting attendee:", err);
     }
 
-    // ——————————————————————————
-    // 2) IF addCal === "yes", generate & download ICS
-    // ——————————————————————————
+    /* Optional calendar invite */
     if (addCal === "yes") {
-      const dtStamp = new Date()
-        .toISOString()
-        .replace(/[-:]/g, "")
-        .split(".")[0] + "Z";
+      const dtStamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
       const dtStart = "20250725T200000";
-      const dtEnd = "20250726T060000";
+      const dtEnd   = "20250726T060000";
       const icsLines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//YourApp//EN",
+        "PRODID:-//Cyclus//EN",
         "BEGIN:VEVENT",
-        `UID:${Date.now()}@yourapp`,
+        `UID:${Date.now()}@cyclus`,
         `DTSTAMP:${dtStamp}`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
@@ -113,61 +111,71 @@ export default function App() {
         "END:VEVENT",
         "END:VCALENDAR",
       ];
-      const icsContent = icsLines.join("\r\n");
-
-      const blob = new Blob([icsContent], {
-        type: "text/calendar;charset=utf-8",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "cyclus1.ics";
+      const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+      const url  = URL.createObjectURL(blob);
+      const link = Object.assign(document.createElement("a"), { href: url, download: "cyclus1.ics" });
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }
 
-    // ——————————————
-    // 3) CLOSE FORM & OPEN THANK YOU
-    // ——————————————
+    /* Close form ➜ show thanks */
     setShowForm(false);
     setShowThanks(true);
   };
 
+  /* ─────────────────────────────────────────────────────────
+     ROUTING LAYER
+     ───────────────────────────────────────────────────────── */
   return (
-    <>
-     <div
-        className="bg-image"
-        style={{ backgroundImage: `url(${bg})` }}
-      /> 
-     {/* 3) Render de WordSearch‐achtergrond op de hele pagina */}
-      <WordSearchBackground
-        words={attendeeNames.slice().reverse()}
-        highlightWord={newlyJoinedName}
-      />
+    <Routes>
+      {/* ===== /ticket : ONLY InfoModal and background ===== */}
+      <Route path="/ticket" element={<TicketPage />} />
 
-     
-    <div className="page">
-      <TopSection 
-          onInfoClick={handleInfoClick}
-          attendeeCount={attendeeCount}
-      />
-      <MiddleSection />
-      <BottomSection onJoinClick={handleJoinClick}>JOIN</BottomSection>
-      {showForm && (
-        <JoinForm
-          onConfirm={handleFormConfirm}
-          onClose={() => setShowForm(false)}
-        />
-      )}
-       {showThanks && (
-       <ThankYouModal onClose={() => setShowThanks(false)} />
-       
-     )}
-     {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
-    </div>
-    <RippleBackground />
-    </>
+      {/* ===== everything else : normal event page ===== */}
+      <Route path="*" element={<HomePage />} />
+    </Routes>
   );
+
+  /* ─── Ticket‑only page — internal component ───────────── */
+  function TicketPage() {
+    const navigate = useNavigate();
+    return (
+      <>
+        <div className="bg-image" style={{ backgroundImage: `url(${bg})` }} />
+        <TicketModal onClose={() => navigate("/", { replace: true })} />
+        <RippleBackground />
+      </>
+    );
+  }
+
+  /* ─── Full event page — internal component ─────────────── */
+  function HomePage() {
+    return (
+      <>
+        {/* static background image */}
+        <div className="bg-image" style={{ backgroundImage: `url(${bg})` }} />
+
+        {/* animated word‑search overlay */}
+        <WordSearchBackground
+          words={attendeeNames.slice().reverse()}
+          highlightWord={newlyJoinedName}
+        />
+
+        {/* main content stack */}
+        <div className="page">
+          <TopSection onInfoClick={handleInfoClick} attendeeCount={attendeeCount} />
+          <MiddleSection />
+          <BottomSection onJoinClick={handleJoinClick}>JOIN</BottomSection>
+
+          {showForm   && <JoinForm      onConfirm={handleFormConfirm} onClose={() => setShowForm(false)} />}
+          {showThanks && <ThankYouModal onClose={() => setShowThanks(false)} />}   
+          {showInfo   && <InfoModal     onClose={() => setShowInfo(false)} />}   
+        </div>
+
+        <RippleBackground />
+      </>
+    );
+  }
 }

@@ -1,30 +1,32 @@
 // src/components/TopSection.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import JoinButton from "./JoinButton";
 import "../styles/topsection.css";
 
 export default function TopSection({ onInfoClick, attendeeCount }) {
-  // We’ll only show/fade‐in the counter once attendeeCount is a number
+  const navigate = useNavigate();
   const isVisible = attendeeCount !== null;
 
   return (
     <section className="bar top">
-      {/* Centered INFO button (absolute‐positioned in CSS) */}
-      <JoinButton onClick={onInfoClick} className="info-button">
-        INFO
-      </JoinButton>
+      <div className="button-stack">
+        {/* INFO button keeps its existing callback */}
+        <JoinButton onClick={onInfoClick} className="info-button">
+          INFO
+        </JoinButton>
 
-      {/* 
-        The count uses both "attendee-count" (for flex layout, if needed) 
-        and "counter" (for the look/animation). We append "visible" 
-        only if isVisible===true, so it fades in via opacity.
-      */}
-      <div
-        className={`attendee-count counter${isVisible ? " visible" : ""}`}
-      >
-        {isVisible
-          ? `${attendeeCount}`
-          : /* while loading, you could render nothing or "Loading..." */ null}
+        {/*   ↓ Navigate straight to /ticket   */}
+        <JoinButton
+          onClick={() => navigate("/ticket")}
+          className="support-button"
+        >
+          Donation&nbsp;Ticket
+        </JoinButton>
+      </div>
+
+      <div className={`attendee-count counter${isVisible ? " visible" : ""}`}>
+        {isVisible ? attendeeCount : null}
       </div>
     </section>
   );

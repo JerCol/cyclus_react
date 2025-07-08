@@ -4,65 +4,62 @@
    1) The top bar itself
    —————————————— */
 .bar.top {
-  position: relative;            /* anchor for any absolutely‐positioned children */
+  position: relative;            /* anchor for absolutely‑positioned children */
   display: flex;
-  justify-content: center;     /* right‐align any normal‐flow children (e.g. .attendee-count) */
+  justify-content: center;       /* centre normal‑flow children (e.g. .attendee-count) */
   align-items: center;
-  padding: 0.5rem 1rem;          
-  /* optional: add a subtle border or shadow at the bottom */
-  /* border-bottom: 1px solid #ddd; */
+  padding: 0.5rem 1rem;
 }
-
 
 /* ——————————————————————————————————
-   2) Center the “INFO” button absolutely
+   2) One centred “button stack” that positions BOTH buttons
    —————————————————————————————————— */
-.bar.top .info-button {
-  position: static;
+.button-stack {
+  position: absolute;            /* floats inside the bar */
+  top: 50%;
   left: 50%;
-  transform: none
-  /* Because the parent (.bar.top) is align‐items:center, 
-     the button is already vertically centered. */
+  transform: translate(-50%, -50%); /* true centre */
+
+  display: flex;
+  flex-direction: column;        /* vertical stack */
+  align-items: center;           /* keep children horizontally centred */
+  gap: 0.5rem;                   /* space between INFO & Support */
 }
 
+/* ——————————————————————————————
+   3) Shared button rules (no absolute‑pos here!)
+   —————————————————————————————— */
+.info-button,
+.support-button {
+  position: static;              /* override any old absolute rules */
+  min-width: 150px;
+  text-align: center;
+}
 
 /* —————————————————————————————————————————————————————
-   3) “counter” styling adapted from your #counter snippet,
-      but scoped under .bar.top instead of the entire window
+   4) Attendee counter styling (unchanged apart from minor clean‑up)
    ————————————————————————————————————————————————————— */
-/* Initially hidden (opacity: 0). Absolutely offset 16px from top/right of the bar. */
 .bar.top .counter {
   position: absolute;
-  top: 16px;                /* 16px down from the top edge of .bar.top */
-  right: 16px;              /* 16px in from the right edge of .bar.top */
+  top: 16px;
+  right: 16px;
   font-size: 1.5rem;
   background: rgba(255, 255, 255, 0.8);
   padding: 4px 8px;
   border-radius: 4px;
   opacity: 0;
   transition: opacity 0.4s;
-  pointer-events: none;     /* so it doesn’t intercept clicks (optional) */
+  pointer-events: none;
 }
 
-
-.bar.top .counter{           /* push counter to the far right */
-  margin-left: auto;
-}
-
-/* When .visible is added to the class list, fade it in */
 .bar.top .counter.visible {
   opacity: 1;
 }
 
-/* ——————————————————————————
-   4) (Optional) if you still want
-      `.attendee-count` to have
-      its own default rules, you can
-      include them here. 
-   —————————————————————————— */
+/* Optional: if some logic relies on .attendee-count being in flow */
 .bar.top .attendee-count {
-  /* You only need this if some other logic relies on attendee‐count being a flex child. 
-     But since .counter is absolute, it’s out of the normal flow. 
-     If you don’t need any extra flex properties, you can remove this block. */
   margin-right: 0.5rem;
+}
+.support-button {
+  font-size: 0.90rem; /* adjust as needed */
 }
