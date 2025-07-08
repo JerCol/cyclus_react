@@ -51,7 +51,7 @@ export default function ArtistPicker({ onScrollBottom }) {
       return copy;
     });
 
-  const spinOneReel = (slotIdx, finalArtist, frames = 25, frameMs = 90) =>
+  const spinOneReel = (slotIdx, finalArtist, frames = 10, frameMs = 40) =>
     new Promise((resolve) => {
       let tick = 0;
       const id = setInterval(() => {
@@ -90,7 +90,7 @@ export default function ArtistPicker({ onScrollBottom }) {
 
     for (let i = 0; i < finalOrder.length; i++) {
       await spinOneReel(i, finalOrder[i]);
-      await delay(150);
+      await delay(10);
     }
   };
 

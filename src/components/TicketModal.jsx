@@ -1,22 +1,28 @@
-// src/components/InfoModal.jsx – two‑button ticket modal with iOS‑safe PDF download
+/* src/components/InfoModal.jsx – two‑button ticket modal with robust iOS PDF download */
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
 import concept from "../assets/concept.webp";
 import JoinButton from "./JoinButton";
-import { jsPDF } from "jspdf";            // npm i jspdf
+import { jsPDF } from "jspdf"; // npm i jspdf
 import { supabase } from "../lib/supabaseClient";
 
 /**
- * Convert the poster to a PDF and either:
- *   • trigger a direct download (desktop & Android)
- *   • open it in a new tab for iOS Safari, which lacks download support
+ * Convert the poster to a PDF and either trigger a direct download
+ * (desktop & Android) or open it in a new tab on iOS (Safari lacks
+ * download support).
  */
 function downloadPosterAsPDF() {
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = concept;
+  const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
+  let pdfWindow = null;
 
+  if (isiOS) {
+    // Reserve a blank tab synchronously so Safari treats it as user‑initiated
+    pdfWindow = window.open("", "_blank");
+  }
+
+  const img = new Image();
+  img.src = concept;
   img.onload = () => {
     const pdf = new jsPDF({
       orientation: img.width > img.height ? "l" : "p",
@@ -24,18 +30,14 @@ function downloadPosterAsPDF() {
       format: [img.width, img.height],
     });
 
-    /* paint white background to avoid black fill behind transparencies */
+    // white background to avoid the usual black fill
     pdf.setFillColor(255, 255, 255);
     pdf.rect(0, 0, img.width, img.height, "F");
-
     pdf.addImage(img, "WEBP", 0, 0, img.width, img.height);
 
-    const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
-
-    if (isiOS) {
-      // iOS Safari can’t download blobs – open in a new tab instead
+    if (isiOS && pdfWindow) {
       const blobUrl = pdf.output("bloburl");
-      window.open(blobUrl, "_blank");
+      pdfWindow.location.href = blobUrl;
     } else {
       pdf.save("cyclus_ticket.pdf");
     }
@@ -43,7 +45,7 @@ function downloadPosterAsPDF() {
 }
 
 export default function InfoModal({ onClose }) {
-  const [links, setLinks] = useState([]); // [{ name, link }]
+  const [links, setLinks] = useState([]);
 
   /* Fetch the two payment links once */
   useEffect(() => {
@@ -61,7 +63,6 @@ export default function InfoModal({ onClose }) {
     })();
   }, []);
 
-  /* Handler – opens the payment link, then downloads/show PDF */
   function handleTicket(name) {
     const row = links.find((r) => r.name === name);
     if (!row) return;
@@ -70,8 +71,6 @@ export default function InfoModal({ onClose }) {
     downloadPosterAsPDF();
 
     // 2) then open the external payment link a moment later
-    //    (iOS Safari blocks only *additional* pop‑ups that are not
-    //     tied to the original gesture; a short delay still works)
     setTimeout(() => {
       window.open(row.link, "_blank");
     }, 600);
