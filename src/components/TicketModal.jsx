@@ -1,41 +1,50 @@
-/* src/components/InfoModal.jsx – cleaned‑up two‑button ticket modal */
+/* src/components/InfoModal.jsx – two‑button ticket modal with white‑background PDF export */
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
 import concept from "../assets/concept.webp";
 import JoinButton from "./JoinButton";
-import { jsPDF } from "jspdf"; // npm i jspdf
+import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabaseClient";
 
-/**
- * Generate the poster PDF and either
- * – download it directly (desktop & Android)
- * – trigger iOS Safari’s share‑sheet via a hidden <a download>
- */
+/* ------------------------------------------------------------------
+   Helper: create poster PDF with a solid white background and trigger
+   download (desktop/Android) or share‑sheet (iOS Safari).
+------------------------------------------------------------------- */
 function downloadPosterAsPDF() {
   const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
 
   const img = new Image();
+  img.crossOrigin = "anonymous";
   img.src = concept;
   img.onload = () => {
+    // 1. Flatten onto white canvas to eliminate transparency
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // 2. Export canvas as JPEG (no alpha)
+    const jpegData = canvas.toDataURL("image/jpeg", 0.95);
+
+    // 3. Build PDF the same size as the image
+    const orientation = canvas.width > canvas.height ? "l" : "p";
     const pdf = new jsPDF({
-      orientation: img.width > img.height ? "l" : "p",
+      orientation,
       unit: "px",
-      format: [img.width, img.height],
+      format: [canvas.width, canvas.height],
     });
+    pdf.addImage(jpegData, "JPEG", 0, 0, canvas.width, canvas.height);
 
-    // white background behind the WEBP
-    pdf.setFillColor(255, 255, 255);
-    pdf.rect(0, 0, img.width, img.height, "F");
-    pdf.addImage(img, "WEBP", 0, 0, img.width, img.height);
-
-    const blob = pdf.output("blob");
-    const blobUrl = URL.createObjectURL(blob);
-
+    // 4. Download logic
     if (isiOS) {
-      // iOS Safari: open share‑sheet so user can “Save to Files”
+      // iOS Safari: use <a download> so user gets the share‑sheet
+      const url = pdf.output("bloburl");
       const a = document.createElement("a");
-      a.href = blobUrl;
+      a.href = url;
       a.download = "cyclus_ticket.pdf";
       document.body.appendChild(a);
       a.click();
@@ -65,18 +74,19 @@ export default function InfoModal({ onClose }) {
     })();
   }, []);
 
-  function handleTicket(name) {
+  /* Click handler */
+  const handleTicket = (name) => {
     const row = links.find((r) => r.name === name);
     if (!row) return;
 
-    // 1) download / show PDF first (gesture‑based)
+    // 1) Generate / share PDF (counts as user gesture)
     downloadPosterAsPDF();
 
-    // 2) open external payment link shortly after to avoid popup block
+    // 2) Open payment link shortly after so Safari doesn’t block it
     setTimeout(() => {
       window.open(row.link, "_blank");
     }, 600);
-  }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -88,10 +98,10 @@ export default function InfoModal({ onClose }) {
         <div className="modal-body">
           <div className="ticket-buttons">
             <JoinButton onClick={() => handleTicket("support_ticket")}> 
-              SUPPORT = €10
+              SUPPORT&nbsp;=&nbsp;€10
             </JoinButton>
             <JoinButton onClick={() => handleTicket("booster_ticket")}> 
-              BOOSTER = €15
+              BOOSTER&nbsp;=&nbsp;€15
             </JoinButton>
           </div>
         </div>
