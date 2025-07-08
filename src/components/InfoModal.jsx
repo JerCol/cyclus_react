@@ -67,6 +67,17 @@ export default function InfoModal({ onClose }) {
             >
               Brussel (Ganshoren)
             </a>
+            {/* WhatsApp link */}
+          <p>
+            For the latest updates,{" "}
+            <a
+              href="https://chat.whatsapp.com/LBvA1PzU6ztJmsRBAzrDJN"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              follow our channel
+            </a>
+          </p>
           </p>
 
           {/* Poster / hero image */}
@@ -84,17 +95,7 @@ export default function InfoModal({ onClose }) {
             }}
           />
 
-          {/* WhatsApp link */}
-          <p>
-            For the latest updates,{" "}
-            <a
-              href="https://chat.whatsapp.com/LBvA1PzU6ztJmsRBAzrDJN"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              follow our channel
-            </a>
-          </p>
+          
 
           {/* Expandable About Us section */}
           <details className="about-section">

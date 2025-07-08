@@ -5,7 +5,7 @@ import JoinButton from "./JoinButton";
 export default function BottomSection({ onJoinClick }) {
   return (
     <section className="bar bottom">
-      <JoinButton onClick={onJoinClick}>JOIN</JoinButton>
+      <JoinButton onClick={onJoinClick}>RSVP</JoinButton>
     </section>
   );
 }

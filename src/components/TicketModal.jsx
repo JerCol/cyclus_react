@@ -80,11 +80,12 @@ export default function InfoModal({ onClose }) {
     if (!row) return;
 
     // 1) Generate / share PDF (counts as user gesture)
-    downloadPosterAsPDF();
+   
+    window.open(row.link, "_blank");
 
     // 2) Open payment link shortly after so Safari doesn’t block it
     setTimeout(() => {
-      window.open(row.link, "_blank");
+      downloadPosterAsPDF();
     }, 600);
   };
 
