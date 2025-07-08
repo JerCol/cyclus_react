@@ -1,4 +1,4 @@
-/* src/components/InfoModal.jsx – two‑button ticket modal with robust iOS PDF download */
+/* src/components/InfoModal.jsx – cleaned‑up two‑button ticket modal */
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
@@ -8,18 +8,12 @@ import { jsPDF } from "jspdf"; // npm i jspdf
 import { supabase } from "../lib/supabaseClient";
 
 /**
- * Convert the poster to a PDF and either trigger a direct download
- * (desktop & Android) or open it in a new tab on iOS (Safari lacks
- * download support).
+ * Generate the poster PDF and either
+ * – download it directly (desktop & Android)
+ * – trigger iOS Safari’s share‑sheet via a hidden <a download>
  */
 function downloadPosterAsPDF() {
   const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
-  let pdfWindow = null;
-
-  if (isiOS) {
-    // Reserve a blank tab synchronously so Safari treats it as user‑initiated
-    pdfWindow = window.open("", "_blank");
-  }
 
   const img = new Image();
   img.src = concept;
@@ -30,14 +24,22 @@ function downloadPosterAsPDF() {
       format: [img.width, img.height],
     });
 
-    // white background to avoid the usual black fill
+    // white background behind the WEBP
     pdf.setFillColor(255, 255, 255);
     pdf.rect(0, 0, img.width, img.height, "F");
     pdf.addImage(img, "WEBP", 0, 0, img.width, img.height);
 
-    if (isiOS && pdfWindow) {
-      const blobUrl = pdf.output("bloburl");
-      pdfWindow.location.href = blobUrl;
+    const blob = pdf.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+
+    if (isiOS) {
+      // iOS Safari: open share‑sheet so user can “Save to Files”
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "cyclus_ticket.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
       pdf.save("cyclus_ticket.pdf");
     }
@@ -47,7 +49,7 @@ function downloadPosterAsPDF() {
 export default function InfoModal({ onClose }) {
   const [links, setLinks] = useState([]);
 
-  /* Fetch the two payment links once */
+  /* Fetch payment links once */
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
@@ -67,10 +69,10 @@ export default function InfoModal({ onClose }) {
     const row = links.find((r) => r.name === name);
     if (!row) return;
 
-    // 1) generate / show the PDF first (counts as the user gesture)
+    // 1) download / show PDF first (gesture‑based)
     downloadPosterAsPDF();
 
-    // 2) then open the external payment link a moment later
+    // 2) open external payment link shortly after to avoid popup block
     setTimeout(() => {
       window.open(row.link, "_blank");
     }, 600);
@@ -84,12 +86,10 @@ export default function InfoModal({ onClose }) {
         </button>
 
         <div className="modal-body">
-          {/* Vertically stacked ticket buttons */}
           <div className="ticket-buttons">
             <JoinButton onClick={() => handleTicket("support_ticket")}> 
               SUPPORT = €10
             </JoinButton>
-
             <JoinButton onClick={() => handleTicket("booster_ticket")}> 
               BOOSTER = €15
             </JoinButton>
