@@ -1,4 +1,4 @@
-/* src/components/CostTransparencyModal.jsx – one Expenses bar (stacked red tints) vs Income bar (green) */
+/* src/components/CostTransparencyModal.jsx – responsive: scroll or fit on mobile */
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -9,7 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Cell,
+  ResponsiveContainer,
 } from "recharts";
 import "../styles/modal.css";
 
@@ -71,9 +71,7 @@ export default function CostTransparencyModal({ onClose }) {
     })();
   }, []);
 
-  const width = 640;
-  const height = 340;
-
+  const chartHeight = 340;
   const colorForCat = (idx) => EXPENSE_COLORS[idx % EXPENSE_COLORS.length];
 
   return (
@@ -81,7 +79,7 @@ export default function CostTransparencyModal({ onClose }) {
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: width + 40 }}
+        style={{ width: "95vw", maxWidth: 680, overflowX: "auto" }}
       >
         <button className="join-button close-button" onClick={onClose}>
           &times;
@@ -91,30 +89,29 @@ export default function CostTransparencyModal({ onClose }) {
         {loading ? (
           <p style={{ textAlign: "center" }}>Loading…</p>
         ) : (
-          <BarChart
-            width={width}
-            height={height}
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" tick={{ fontSize: 14 }} />
-            <YAxis tickFormatter={(v) => `€${v}`} />
-            <Tooltip formatter={(v) => `€${v.toFixed(2)}`} />
+          <div style={{ minWidth: 640 }}>
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 14 }} />
+                <YAxis tickFormatter={(v) => `€${v}`} />
+                <Tooltip formatter={(v) => `€${v.toFixed(2)}`} />
 
-            {/* stacked expense segments */}
-            {expenseCategories.map((cat, idx) => (
-              <Bar
-                key={cat}
-                dataKey={cat}
-                stackId="expenses"
-                fill={colorForCat(idx)}
-              />
-            ))}
-
-            {/* total income bar */}
-            <Bar dataKey="income" fill={INCOME_COLOR} />
-          </BarChart>
+                {expenseCategories.map((cat, idx) => (
+                  <Bar
+                    key={cat}
+                    dataKey={cat}
+                    stackId="expenses"
+                    fill={colorForCat(idx)}
+                  />
+                ))}
+                <Bar dataKey="income" fill={INCOME_COLOR} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </div>
     </div>
