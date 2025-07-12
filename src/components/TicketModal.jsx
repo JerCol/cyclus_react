@@ -113,6 +113,19 @@ export default function InfoModal({ onClose }) {
     const dinnerExtra = choice === "yes" ? 8 : 0;
     const totalAmount = basePrice + dinnerExtra;
 
+    /* Log dinner choice */
+try {
+  await supabase.from("dinner").insert([
+    {
+      name: `dinner_choice_${Date.now()}`, // arbitrary identifier
+      attendance: choice,                  // "yes" | "not-sure" | "no"
+    },
+  ]);
+} catch (err) {
+  console.error("Failed inserting dinner choice:", err.message);
+}
+
+
     /* 2) Insert into income table */
     try {
       await supabase.from("income").insert([
@@ -155,7 +168,7 @@ export default function InfoModal({ onClose }) {
       </h2>
       <div className="dinner-buttons" style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
         <JoinButton onClick={() => handleDinnerChoice("yes")}>Yes (+€8)</JoinButton>
-        <JoinButton onClick={() => handleDinnerChoice("not-sure")}>Not&nbsp;Sure</JoinButton>
+        <JoinButton onClick={() => handleDinnerChoice("not-sure")}>Not&nbsp;sure&nbsp;yet</JoinButton>
         <JoinButton onClick={() => handleDinnerChoice("no")}>No</JoinButton>
       </div>
     </div>
