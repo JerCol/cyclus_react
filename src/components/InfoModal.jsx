@@ -3,6 +3,8 @@ import "../styles/modal.css"; // ensure this file is present
 import concept from "../assets/concept.webp";
 import ArtistPicker from "./ArtistPicker";
 import { supabase } from "../lib/supabaseClient";
+import { ExternalLink } from "lucide-react"; // or your preferred icon library
+
 
 export default function InfoModal({ onClose }) {
   const [aboutText, setAboutText] = useState("");
@@ -57,28 +59,63 @@ export default function InfoModal({ onClose }) {
 
           {/* Event details */}
           <p>
-            <strong>Date:</strong> 25.07.2025 (8pm-6am)
-            <br />
-            <strong>Location:</strong>{" "}
-            <a
-              href="https://maps.app.goo.gl/M7cumcAkbPHygRAW6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Brussel (Ganshoren)
-            </a>
-            {/* WhatsApp link */}
-          <p>
-            For the latest updates,{" "}
-            <a
-              href="https://chat.whatsapp.com/LBvA1PzU6ztJmsRBAzrDJN"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              follow our channel
-            </a>
-          </p>
-          </p>
+  <strong>Date:</strong> 25.07.2025&nbsp;(8 pm – 6 am)
+  <br />
+  <strong>Location:</strong>{" "}
+  <a
+    href="https://maps.app.goo.gl/M7cumcAkbPHygRAW6"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Brussel (Ganshoren)
+  </a>
+  <br />
+  <strong>Follow on:&nbsp;</strong>
+
+  {/* Instagram */}
+  <a
+    href="https://www.instagram.com/cyclus.bxl?igsh=am9nYjhpcXJtOW15"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+  >
+    <img
+      src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/instagram.svg"
+      alt="Instagram"
+      style={{ width: 24, height: 24 }}
+    />
+    <ExternalLink
+      size={14}
+      strokeWidth={1.5}
+      className="opacity-60"
+      aria-hidden="true"
+    />
+  </a>
+
+  and/or&nbsp;
+
+  {/* WhatsApp */}
+  <a
+    href="https://chat.whatsapp.com/LBvA1PzU6ztJmsRBAzrDJN?mode=r_c"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+  >
+    <img
+      src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/whatsapp.svg"
+      alt="WhatsApp"
+      style={{ width: 24, height: 24 }}
+    />
+    <ExternalLink
+      size={14}
+      strokeWidth={1.5}
+      className="opacity-60"
+      aria-hidden="true"
+    />
+  </a>
+</p>
+
+
 
           {/* Poster / hero image */}
           <img
