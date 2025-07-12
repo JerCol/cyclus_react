@@ -19,6 +19,7 @@ import InfoModal       from "./components/InfoModal";
 import TicketModal     from "./components/TicketModal"
 import JoinButton      from "./components/JoinButton.jsx"; /* (kept for completeness) */
 import AddExpensePage from "./components/AddExpensePage"; // << at top with other imports
+import CostTransparencyModal from "./components/CostTransparencyModal";
 
 
 /* ─── stylesheets ────────────────────────────────────────── */
@@ -136,6 +137,7 @@ export default function App() {
       <Route path="/join" element={<JoinPage />} />
       
       <Route path="/add_expense" element={<AddExpensePage />} />
+      <Route path="/expenses_and_income" element={<ExpensesIncomePage />} />
 
 
       {/* ===== /ticket : ONLY InfoModal and background ===== */}
@@ -145,6 +147,19 @@ export default function App() {
       <Route path="*" element={<HomePage />} />
     </Routes>
   );
+
+  /* add this internal component just below TicketPage() or JoinPage() */
+function ExpensesIncomePage() {
+  const navigate = useNavigate();
+  return (
+    <>
+      <div className="bg-image" style={{ backgroundImage: `url(${bg})` }} />
+      <CostTransparencyModal onClose={() => navigate("/", { replace: true })} />
+      <RippleBackground />
+    </>
+  );
+}
+
 
   /* ─── Ticket‑only page — internal component ───────────── */
   function TicketPage() {
