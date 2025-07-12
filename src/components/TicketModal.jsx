@@ -190,14 +190,14 @@ try {
                 <JoinButton onClick={() => handleTicketClick("support_ticket")}>SUPPORT&nbsp;=&nbsp;€10</JoinButton>
                 <JoinButton onClick={() => handleTicketClick("booster_ticket")}>BOOSTER&nbsp;=&nbsp;€15</JoinButton>
               </div>
-              <div style={{ marginTop: "1rem", textAlign: "center" }}>
+              {/* <div style={{ marginTop: "1rem", textAlign: "center" }}>
                 <button
                   style={{ background: "none", border: "none", color: "#00C49F", cursor: "pointer", textDecoration: "underline", fontSize: "0.9rem" }}
                   onClick={() => setShowCosts(true)}
                 >
                   cost transparency
                 </button>
-              </div>
+              </div> */}
             </>
           )}
         </div>
