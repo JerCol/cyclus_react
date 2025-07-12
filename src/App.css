@@ -11,6 +11,8 @@ html,body,#root{
   position: fixed;
   inset: 0;                     /* cover the viewport */
   pointer-events: none;         /* clicks pass through */
+  z-index: -1;              /* put it behind the wordsearch (z‐index -1) */
+
 }
 .bg-ripple span {
   position: absolute;

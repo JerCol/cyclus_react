@@ -18,6 +18,8 @@ import ThankYouModal   from "./components/ThankYouModal";
 import InfoModal       from "./components/InfoModal";
 import TicketModal     from "./components/TicketModal"
 import JoinButton      from "./components/JoinButton.jsx"; /* (kept for completeness) */
+import AddExpensePage from "./components/AddExpensePage"; // << at top with other imports
+
 
 /* ─── stylesheets ────────────────────────────────────────── */
 import "./styles/join-button.css";
@@ -130,6 +132,12 @@ export default function App() {
      ───────────────────────────────────────────────────────── */
   return (
     <Routes>
+      {/* ===== /join : event page with JoinForm already open ===== */}
+      <Route path="/join" element={<JoinPage />} />
+      
+      <Route path="/add_expense" element={<AddExpensePage />} />
+
+
       {/* ===== /ticket : ONLY InfoModal and background ===== */}
       <Route path="/ticket" element={<TicketPage />} />
 
@@ -149,6 +157,54 @@ export default function App() {
       </>
     );
   }
+
+  /* ─── Join-form page — internal component ─────────────── */
+function JoinPage() {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      {/* same static + animated backgrounds as the main page */}
+      <div className="bg-image" style={{ backgroundImage: `url(${bg})` }} />
+      <WordSearchBackground
+        words={attendeeNames.slice().reverse()}
+        highlightWord={newlyJoinedName}
+      />
+
+      {/* full content stack so the page still looks identical */}
+      <div className="page">
+        <TopSection onInfoClick={handleInfoClick} attendeeCount={attendeeCount} />
+        <MiddleSection />
+        <BottomSection onJoinClick={() => navigate("/join")}>JOIN</BottomSection>
+
+        {/* Join form is always visible on this route */}
+        <JoinForm
+          onConfirm={(data) => {
+            handleFormConfirm(data); // inserts attendee + (optionally) calendar
+            /* keep user on /join so the thank-you modal appears in place;
+               if you prefer to return to the home page instead, call
+               navigate("/", { replace: true }) right after handleFormConfirm */
+          }}
+          onClose={() => navigate("/", { replace: true })}
+        />
+
+        {/* any follow-up modals that the form might trigger */}
+        {showThanks && (
+          <ThankYouModal
+            onClose={() => {
+              setShowThanks(false);
+              navigate("/", { replace: true });
+            }}
+          />
+        )}
+        {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+      </div>
+
+      <RippleBackground />
+    </>
+  );
+}
+
 
   /* ─── Full event page — internal component ─────────────── */
   function HomePage() {
