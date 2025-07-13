@@ -12,7 +12,7 @@ export default function TopSection({ onInfoClick, attendeeCount }) {
     <section className="bar top">
       <div className="button-stack">
         {/* INFO button keeps its existing callback */}
-        <JoinButton onClick={onInfoClick} className="info-button">
+        <JoinButton onClick={onInfoClick} className="support-button">
           INFO
         </JoinButton>
 

@@ -1,5 +1,5 @@
-/* src/components/InfoModal.jsx – two‑step ticket & dinner modal
-   with white‑background PDF export + cost transparency link + income insert */
+/* src/components/InfoModal.jsx – simplified: tickets only (no dinner prompt)
+   Fix: use location.redirect on mobile so Payconiq link opens reliably */
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
@@ -10,8 +10,7 @@ import { supabase } from "../lib/supabaseClient";
 import CostTransparencyModal from "./CostTransparencyModal";
 
 /* ------------------------------------------------------------------
-   Helper: create poster PDF with a solid white background and trigger
-   download (desktop/Android) or share‑sheet (iOS Safari).
+   Helper: create poster PDF with white background and trigger download
 ------------------------------------------------------------------- */
 function downloadPosterAsPDF() {
   const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
@@ -45,12 +44,9 @@ function downloadPosterAsPDF() {
       align: "center",
     });
 
-    const blob = pdf.output("blob");
-    const blobUrl = URL.createObjectURL(blob);
-
     if (isiOS) {
       const a = document.createElement("a");
-      a.href = blobUrl;
+      a.href = pdf.output("bloburl");
       a.download = "cyclus_ticket.pdf";
       document.body.appendChild(a);
       a.click();
@@ -63,116 +59,64 @@ function downloadPosterAsPDF() {
 
 export default function InfoModal({ onClose }) {
   const [links, setLinks] = useState([]);
-  const [selectedTicket, setSelectedTicket] = useState(null);
-  const [askDinner, setAskDinner] = useState(false);
   const [showCosts, setShowCosts] = useState(false);
+  const [extraText, setExtraText] = useState(null);
 
-  /* Fetch payment links once */
+  /* Fetch payment links */
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from("payment_links")
         .select("name, link")
-        .in("name", [
-          "support_ticket",
-          "booster_ticket",
-          "support_dinner_ticket",
-          "booster_dinner_ticket",
-        ]);
-      if (error) {
-        console.error("Supabase payment_links fetch error:", error);
-      } else {
-        setLinks(data);
-      }
+        .in("name", ["support_ticket", "booster_ticket"]);
+      if (!error) setLinks(data);
+    })();
+  }, []);
+
+  /* Fetch explanatory paragraph + footer */
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("text")
+        .select("paragraph, footer")
+        .eq("name", "ticket_explanation")
+        .single();
+      if (!error) setExtraText(data);
     })();
   }, []);
 
   /* --------------------------------------------------------------
-     STEP 1: Ticket button clicked – ask for dinner opt‑in
+     Ticket click handler – opens link & logs income
   -------------------------------------------------------------- */
-  const handleTicketClick = (ticketName) => {
-    setSelectedTicket(ticketName);
-    setAskDinner(true);
-  };
+  const handleTicketClick = async (ticketName) => {
+    const row = links.find((r) => r.name === ticketName);
+    if (!row) return;
 
-  /* --------------------------------------------------------------
-     STEP 2: Dinner choice answered – open link + record income
-  -------------------------------------------------------------- */
-  const handleDinnerChoice = async (choice) => {
-    const baseRow = links.find((r) => r.name === selectedTicket);
-    if (!baseRow) return;
+    const price = ticketName === "support_ticket" ? 10 : 15;
 
-    const dinnerRowName =
-      selectedTicket === "support_ticket"
-        ? "support_dinner_ticket"
-        : "booster_dinner_ticket";
-    const dinnerRow = links.find((r) => r.name === dinnerRowName);
-
-    /* 1) Determine amount */
-    const basePrice = selectedTicket === "support_ticket" ? 10 : 15;
-    const dinnerExtra = choice === "yes" ? 8 : 0;
-    const totalAmount = basePrice + dinnerExtra;
-
-    /* Log dinner choice */
-try {
-  await supabase.from("dinner").insert([
-    {
-      name: `dinner_choice_${Date.now()}`, // arbitrary identifier
-      attendance: choice,                  // "yes" | "not-sure" | "no"
-    },
-  ]);
-} catch (err) {
-  console.error("Failed inserting dinner choice:", err.message);
-}
-
-
-    /* 2) Insert into income table */
     try {
       await supabase.from("income").insert([
         {
           name: `ticket_sale_${Date.now()}`,
           category: "ticket",
-          amount: totalAmount,
+          amount: price,
         },
       ]);
     } catch (err) {
       console.error("Failed inserting income:", err.message);
     }
 
-    /* 3) Open payment link */
-    if (choice === "yes" && dinnerRow) {
-      window.open(dinnerRow.link, "_blank");
+    /* Open payment link – use full redirect on mobile to satisfy Payconiq */
+    const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = row.link; // navigate in same tab
     } else {
-      window.open(baseRow.link, "_blank");
+      window.open(row.link, "_blank", "noopener,noreferrer");
     }
 
-    /* 4) Generate / share PDF after slight delay */
-    setTimeout(downloadPosterAsPDF, 600);
-
-    /* 5) Reset dialog state */
-    setAskDinner(false);
-    setSelectedTicket(null);
+    /* Generate / download PDF after slight delay (desktop only) */
+    if (!isMobile) setTimeout(downloadPosterAsPDF, 600);
   };
-
-  /* ------------------------------------------------------------------
-     UI helpers
-  ------------------------------------------------------------------ */
-  const DinnerPrompt = () => (
-    <div className="dinner-prompt">
-      <h2 className="dinner-title" style={{ textAlign: "center" }}>
-        Join our dinner?
-        <br />
-        <small style={{ fontSize: "0.8rem", display: "block", marginTop: "0.25rem" }}>
-          (starts from 19:30)
-        </small>
-      </h2>
-      <div className="dinner-buttons" style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-        <JoinButton onClick={() => handleDinnerChoice("yes")}>Yes (+€8)</JoinButton>
-        <JoinButton onClick={() => handleDinnerChoice("not-sure")}>Not&nbsp;sure&nbsp;yet</JoinButton>
-        <JoinButton onClick={() => handleDinnerChoice("no")}>No</JoinButton>
-      </div>
-    </div>
-  );
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -182,25 +126,18 @@ try {
         </button>
 
         <div className="modal-body">
-          {askDinner ? (
-            <DinnerPrompt />
-          ) : (
-            <>
-              <div className="ticket-buttons">
-                <JoinButton onClick={() => handleTicketClick("support_ticket")}>SUPPORT&nbsp;=&nbsp;€10</JoinButton>
-                <JoinButton onClick={() => handleTicketClick("booster_ticket")}>BOOSTER&nbsp;=&nbsp;€15</JoinButton>
-              </div>
-              {/* <div style={{ marginTop: "1rem", textAlign: "center" }}>
-                <button
-                  style={{ background: "none", border: "none", color: "#00C49F", cursor: "pointer", textDecoration: "underline", fontSize: "0.9rem" }}
-                  onClick={() => setShowCosts(true)}
-                >
-                  cost transparency
-                </button>
-              </div> */}
-            </>
-          )}
+          <div className="ticket-buttons">
+            <JoinButton onClick={() => handleTicketClick("support_ticket")}>SUPPORT&nbsp;=&nbsp;€10</JoinButton>
+            <JoinButton onClick={() => handleTicketClick("booster_ticket")}>BOOSTER&nbsp;=&nbsp;€15</JoinButton>
+          </div>
         </div>
+
+        {extraText && (
+          <div className="modal-extra">
+            <p>{extraText.paragraph}</p>
+            {extraText.footer && <p className="modal-footer">{extraText.footer}</p>}
+          </div>
+        )}
       </div>
 
       {showCosts && <CostTransparencyModal onClose={() => setShowCosts(false)} />}

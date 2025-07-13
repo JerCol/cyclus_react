@@ -1,9 +1,3 @@
-// src/components/ArtistPicker.jsx – now honours `order` & `time_slot`
-// ------------------------------------------------------------------
-// • Artists fetched in explicit order (ascending `order` column)
-// • Each reel shows "{time_slot}: {name}" if a time_slot is present
-// ------------------------------------------------------------------
-
 import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/modal.css";
@@ -17,6 +11,7 @@ export default function ArtistPicker({ onScrollBottom }) {
   const [fixed, setFixed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [maxLen, setMaxLen] = useState(8);
+  const [visibleRows, setVisibleRows] = useState(0); // controls sequential reveal
   const timers = useRef([]);
 
   /* ───────────── fetch once ───────────── */
@@ -25,7 +20,7 @@ export default function ArtistPicker({ onScrollBottom }) {
       const { data, error } = await supabase
         .from("artists")
         .select("id, name, link, present, order, time_slot")
-        .order("order", { ascending: true }); // ensures the SQL result is ordered
+        .order("order", { ascending: true });
 
       if (error) {
         console.error(error);
@@ -41,12 +36,9 @@ export default function ArtistPicker({ onScrollBottom }) {
       setReels(Array(pres.length).fill(null));
       setFixed(Array(pres.length).fill(false));
 
-      // longest display string length (time_slot + ": " + name)
-      const longest = pres.reduce((acc, r) => {
-        const str = `${r.time_slot ? r.time_slot + ": " : ""}${r.name}`;
-        return Math.max(acc, str.length);
-      }, 1);
-      setMaxLen(longest);
+      // longest display string length (just the name; time_slot is separate)
+      const longestName = pres.reduce((acc, r) => Math.max(acc, r.name.length), 1);
+      setMaxLen(longestName);
 
       setLoading(false);
     })();
@@ -98,11 +90,14 @@ export default function ArtistPicker({ onScrollBottom }) {
 
     setReels(Array(present.length).fill(null));
     setFixed(Array(present.length).fill(false));
+    setVisibleRows(0);
 
-    // keep the predetermined order, but still spin sequentially
+    // sequentially reveal time_slot labels and spin rows one‑by‑one
     for (let i = 0; i < present.length; i++) {
+      setVisibleRows(i + 1);          // show label for the next row first
+      await delay(50);                // allow paint
       await spinOneReel(i, present[i]);
-      await delay(10);
+      await delay(100);               // small pause before moving on
     }
   };
 
@@ -119,45 +114,47 @@ export default function ArtistPicker({ onScrollBottom }) {
           spin();
         }}
       >
-        Line-up?
+        Line‑up?
       </button>
 
       <div className="slotmachine">
-        {reels.map((artist, i) => {
+        {present.slice(0, visibleRows).map((artist, i) => {
+          const reelArtist = reels[i];
           const isFixed = fixed[i];
-          const hasLink = isFixed && artist && artist.link;
-          const label = artist
-            ? `${artist.time_slot ? artist.time_slot + ": " : ""}${artist.name}`
-            : "–";
+          const hasLink = isFixed && reelArtist && reelArtist.link;
+          const nameLabel = reelArtist ? reelArtist.name : "–";
 
           return (
-            <div
-              key={i}
-              className={`reel ${artist ? "reel--visible" : ""}`}
-              style={{ width: `${maxLen + 2}ch` }}
-            >
-              {artist ? (
-                hasLink ? (
-                  <a
-                    href={artist.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Open ${artist.name}`}
-                  >
-                    {label}&nbsp;
-                    <ExternalLink
-                      size={14}
-                      strokeWidth={1.5}
-                      className="opacity-60"
-                      aria-hidden="true"
-                    />
-                  </a>
+            <div key={i} className="slot-row">
+              <strong className="time-slot">{artist.time_slot}</strong>
+
+              <div
+                className={`reel ${reelArtist ? "reel--visible" : ""}`}
+                style={{ width: `${maxLen + 2}ch` }}
+              >
+                {reelArtist ? (
+                  hasLink ? (
+                    <a
+                      href={reelArtist.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${reelArtist.name}`}
+                    >
+                      {nameLabel}&nbsp;
+                      <ExternalLink
+                        size={14}
+                        strokeWidth={1.5}
+                        className="opacity-60"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  ) : (
+                    <span>{nameLabel}</span>
+                  )
                 ) : (
-                  <span>{label}</span>
-                )
-              ) : (
-                "–"
-              )}
+                  "–"
+                )}
+              </div>
             </div>
           );
         })}

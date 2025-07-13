@@ -1,132 +1,138 @@
-/* dark semi-transparent full-screen backdrop */
+/* --------------------------------------------------------------
+   modal.css – centred line‑up + extra text support (smaller footer)
+   -------------------------------------------------------------- */
 
-/* Google Fonts import */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 
-/* Apply Roboto to the modal’s text */
+/* ------------ GLOBAL TYPOGRAPHY ------------ */
 .modal-body,
 .modal-body h2,
 .modal-body p,
-.modal-body a{
-  font-family: "Roboto", sans-serif;
-}
-
-/* Put this after the @import */
+.modal-body a,
 .modal-content,
-.modal-content * {            /* the * lets inputs & buttons inherit too */
+.modal-content * {
   font-family: "Roboto", sans-serif;
 }
 
-
-/* poster sizing – replace the earlier .modal-image rule */
+/* ------------ BASIC MEDIA / POSTER ------------ */
 .modal-image {
   width: 100%;
-  max-height: 60vh;      /* never taller than 60 % of the viewport */
-  height: auto;          /* keep the aspect ratio */
-  object-fit: contain;   /* show the whole image, no cropping */
+  max-height: 60vh;
+  height: auto;
+  object-fit: contain;
   margin: 1rem 0;
   border-radius: 8px;
 }
 
+/* ==============================================================
+   SLOT‑MACHINE / LINE‑UP
+   ============================================================== */
+.slot-machine-wrapper {
+  text-align: center;
+  margin: 1.25rem 0;
+  padding: 0 0.75rem;
+  box-sizing: border-box;
+}
 
+.slotmachine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.slot-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.time-slot {
+  font-weight: 700;
+  margin-right: 0.5rem;
+  width: 7ch;
+  text-align: right;
+}
+
+.reel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 3.5rem;
+  padding: 0.5rem;
+  border: 2px solid #333;
+  border-radius: 6px;
+  background: #ffffff;
+  text-align: left;
+  word-break: break-word;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reel--visible { opacity: 1; transform: translateY(0); }
+.reel--clickable { cursor: pointer; font-weight: 700; }
+
+@keyframes reelFloat {
+  0%,100% { transform: translateY(0);} 50% { transform: translateY(-3px) scale(1.03);} }
+
+@media (prefers-reduced-motion:no-preference){
+  .reel--clickable{animation:reelFloat 2.5s ease-in-out infinite;}
+  .reel--clickable:active{animation:none;transform:translateY(0) scale(0.96);} }
+
+.reel a,
+.reel a:visited,
+.reel a:hover,
+.reel a:focus { color: inherit !important; text-decoration: none !important; }
+
+/* ==============================================================
+   EXTRA TEXT BELOW MODAL
+   ============================================================== */
+.modal-extra {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.modal-extra .modal-footer {
+  margin-top: 0.5rem;
+  font-style: italic;
+  font-size: 0.8em;          /* smaller footer text */
+}
+
+/* ==============================================================
+   MODAL CONTAINER & LAYOUT
+   ============================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
+  overflow-x: hidden;
 }
 
-
-/* white card in the centre */
 .modal-content {
   position: relative;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-}
-.modal-overlay,
-.modal-content {
-  overflow-x: hidden; /* prevent horizontal scroll */
-}
-
-/* simple form styling */
-.modal-content h2 {
-  margin-top: 0;
-}
-.modal-content label {
-  display: block;
-  margin: 1rem 0;
-}
-.modal-content input[type="text"] {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  box-sizing: border-box;
-}
-.modal-content fieldset {
-  margin: 1rem 0;
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-}
-.modal-content a {
-  color: #0066cc;
-  text-decoration: none;
-
-}
-.modal-content a:hover {
-  text-decoration: underline;
-}
-.modal-content .close-button {
-  position: absolute;
-  top: 0.5rem;    /* tweak vertical offset */
-  right: 0.5rem;  /* tweak horizontal offset */
-  padding: 0.25rem 0.5rem; /* optional: smaller size */
-  font-size: 1.25rem;      /* optional: larger “×” */
-  line-height: 1;
-}
-
-/* src/styles/info-modal.css */
-
-/* 1) Overlay (unchanged) */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem; /* ensure some breathing room on very small screens */
-}
-
-/* 2) Modal box */
-.modal-content {
-  position: relative;
-
-  /* By default, let it be at most 600px wide, but shrink as needed */
   width: 90%;
   max-width: 600px;
-
-  /* Constrain height and allow scrolling if content is taller */
-
   background: #e9e8e8;
   border-radius: 8px;
-
-  /* Base padding; we’ll reduce this on very small screens */
   padding: 1.5rem;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  overflow-x: hidden;
 }
 
-/* 3) Close button (unchanged) */
 .close-button {
   position: absolute;
   top: 0.75rem;
@@ -138,398 +144,41 @@
   cursor: pointer;
 }
 
-/* 4) Modal text styles */
-.modal-body h2 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-  font-size: 1.75rem;
-  line-height: 1.2;
-}
-
-.modal-body h3 {
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
-  line-height: 1.3;
-}
-
-.modal-body p {
-  margin-bottom: 1rem;
-  line-height: 1.5;
-  color: #333333;
-}
-
-.modal-body ul {
-  margin: 0.5rem 0 1rem 1.25rem;
-  padding: 0;
-}
-
-.modal-body li {
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.modal-body a {
-  color: #0066cc;
-  text-decoration: underline;
-}
-
-.modal-body a:hover {
-  text-decoration: none;
-}
-
-/* ---------- SLOT-MACHINE ---------- */
-.slot-machine-wrapper {
-  text-align: center;
-  margin: 1.25rem 0;
-}
-
-.slot-heading {
-  margin: 0 0 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-/* 1) Make the container a 3-column grid, with gaps around each cell */
-.slotmachine {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;           /* space between reels */
-  margin: 1rem 0;         /* space above/below the entire grid */
-  padding: 0 0.5rem;      /* small padding left/right so reels don’t touch modal edges */
-  width: 100%; 
-  box-sizing: border-box;
-  justify-items: center;  /* center each reel horizontally in its cell */
-}
-.reel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3.5rem;      /* ensure enough tappable area */
-  padding: 0.5rem;         /* breathing room for the text */
-  border: 2px solid #333;
-  border-radius: 6px;
-  background: #ffffff;
-  box-sizing: border-box;
-  text-align: center;
-  word-break: break-word;  /* wrap long names */
-  font-size: 0.9rem;       /* base font size (will shrink on small screens) */
-  line-height: 1.2;
-}
-/* 3) If a reel is clickable, keep the same “float” animation */
-.reel--clickable {
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.reel a {
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0.5rem;      /* mirror the .reel padding so text stays centered */
-  box-sizing: border-box;
-  text-align: center;
-  word-break: break-word;
-}
-
-.reel a,
-.reel a:visited,
-.reel a:hover,
-.reel a:focus {
-  color: inherit !important;
-  text-decoration: none !important;
-}
-
-/* Let the existing .join-button style the “Spin!” button */
-
-
-/* 5) Responsive tweaks for small screens */
-@media (max-width: 480px) {
-  .modal-content {
-    /* Make it a bit narrower on very small screens */
-    width: 95%;
-    max-width: 400px;
-
-    /* Less padding so the content can fit better */
-    padding: 1rem;
-  }
-
-  /* Slightly reduce heading and paragraph sizes */
-  .modal-body h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .modal-body h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .modal-body p {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .modal-body li {
-    font-size: 0.9rem;
-    margin-bottom: 0.6rem;
-  }
-
-  /* Shrink the close button slightly */
-  .close-button {
-    top: 0.5rem;
-    right: 0.5rem;
-    font-size: 1.25rem;
-  }
-}
-/* -------------------------------------------------------------- */
-/*  Subtle “floating” cue for clickable artist tiles (mobile-first)
-    – Runs continuously so touch users see it without hovering
-    – Pauses automatically for users who prefer reduced motion      */
-/* -------------------------------------------------------------- */
-
-@keyframes reelFloat {
-  0%, 100% { transform: translateY(0);        }
-  50%      { transform: translateY(-3px) scale(1.03); }
-}
-
-.reel--clickable {
-  cursor: pointer;
-  font-weight: 700;         /* keep link text slightly bolder */
-  /* motion only if the user allows it */
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .reel--clickable {
-    animation: reelFloat 2.5s ease-in-out infinite;
-  }
-  
-  /* Give tactile feedback when pressed */
-  .reel--clickable:active {
-    animation: none;                 /* stop float while pressing */
-    transform: translateY(0) scale(0.96);
-  }
-}
-@media (max-width: 640px) {
-  .slotmachine {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-  .reel {
-    font-size: 0.85rem;
-    min-height: 3rem;
-    padding: 0.4rem;
-  }
-}
-@media (max-width: 480px) {
-  .reel {
-    min-height: 50px;
-    font-size: 0.9rem;
-  }
-}
-@media (max-width: 420px) {
-  .slotmachine {
-    grid-template-columns: 1fr; /* stack vertically */
-  }
-  .reel {
-    font-size: 0.8rem;
-    min-height: 2.5rem;
-    padding: 0.3rem;
-  }
-}
-
-/* Keep anchor styling neutral (no blue, no underline) */
-.reel--clickable a {
-  color: inherit !important;
-  text-decoration: none;
-}
-
-/* -------------------------------------------------------------------
-   5) Add a little padding around the grid so reels don’t touch edges
-   ------------------------------------------------------------------- */
-.slot-machine-wrapper {
-  padding: 0 0.75rem; /* left/right breathing room inside the modal */
-  box-sizing: border-box;
-}
-
-/* If you want to ensure the modal body itself has inner padding: */
 .modal-body {
-  padding: 1rem; /* adjust as desired */
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 1rem;
 }
 
-/* -------------------------------------------------------------------
-   6) OPTIONAL: tweak the “Discover Artists” button spacing
-   ------------------------------------------------------------------- */
-.slot-machine-wrapper .join-button {
-  margin-top: 0.75rem;
+.modal-content h2 { margin-top: 0; }
+.modal-content label { display: block; margin: 1rem 0; }
+.modal-content input[type="text"]{ width:100%; padding:0.5rem; margin-top:0.25rem; box-sizing:border-box; }
+.modal-content fieldset{ margin:1rem 0; border:1px solid #ccc; padding:0.5rem; }
+.modal-content a{ color:#0066cc; text-decoration:none; }
+.modal-content a:hover{ text-decoration:underline; }
+
+.ticket-buttons { display:flex; flex-direction:column; align-items:center; gap:3rem; }
+.ticket-buttons .join-button, .ticket-buttons .join-button.large{ padding:0.35rem 0.75rem; line-height:1; }
+
+/* ==============================================================
+   RESPONSIVE TWEAKS
+   ============================================================== */
+@media (max-width:640px){
+  .reel{ font-size:0.85rem; min-height:3rem; }
+  .modal-extra{ font-size:0.8rem; }
 }
 
-   --------------------------------------------------------------------- */
-.modal-content,
-.modal-body,
-.slot-machine-wrapper,
-.slotmachine,
-.reel {
-  box-sizing: border-box;
+@media (max-width:480px){
+  .modal-content{ width:95%; max-width:400px; padding:1rem; }
+  .reel{ min-height:50px; font-size:0.9rem; }
+  .modal-extra{ font-size:0.78rem; }
 }
 
-
-/* ---------------------------------------------------------------------
-   2) Prevent any horizontal overflow at the modal level 
-   --------------------------------------------------------------------- */
-.modal-overlay,
-.modal-content {
-  overflow-x: hidden;
-}
-
-/* ---------------------------------------------------------------------
-   3) Slot‐machine container: use a three‐column grid with minmax(0,1fr)
-      so each column can shrink below its intrinsic content width. 
-   --------------------------------------------------------------------- */
-.slotmachine {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;        /* spacing between reels both horizontally & vertically */
-  margin: 1rem 0;      /* vertical space above/below the grid */
-  width: 100%;         /* let it fill the parent (modal-body/slot-machine-wrapper) */
-}
-
-/* ---------------------------------------------------------------------
-   4) Individual “reel” styling:  
-      • flex‐center text  
-      • a minimum height so it’s tappable  
-      • padding so the text doesn’t touch edges  
-      • font‐size that can shrink on small screens  
-      • word‐break to wrap long names  
-   --------------------------------------------------------------------- */
-.reel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3.5rem;       /* enough height for tapping/clicking */
-  border: 2px solid #333;
-  border-radius: 6px;
-  background: #ffffff;
-  text-align: center;
-  word-break: break-word;   /* wrap long names instead of forcing a wide column */
-  font-size: 0.9rem;        /* base font size — we’ll shrink on smaller screens */
-  line-height: 1.2;
-  overflow-wrap: break-word;/* extra insurance that text doesn’t overflow */
-}
-
-/* Keep links inside the reel inheriting the same styles */
-.reel a,
-.reel a:visited,
-.reel a:hover,
-.reel a:focus {
-  color: inherit !important;
-  text-decoration: none !important;
-}
-
-/* Clickable reels: same float animation as before */
-.reel--clickable {
-  cursor: pointer;
-  font-weight: 700;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .reel--clickable {
-    animation: reelFloat 2.5s ease-in-out infinite;
-  }
-  .reel--clickable:active {
-    animation: none;
-    transform: translateY(0) scale(0.96);
-  }
-}
-
-/* ---------------------------------------------------------------------
-   5) Give the slot‐machine wrapper a bit of horizontal padding so reels
-      never butt right up against the modal’s inner edges.
-   --------------------------------------------------------------------- */
-.slot-machine-wrapper {
-  padding: 0 0.75rem;  /* left/right breathing room inside the modal */
-  box-sizing: border-box;
-}
-
-/* If your modal‐body doesn’t already have padding, you can add it here */
-.modal-body {
-  padding: 1rem; /* adjust higher or lower if you need more space around content */
-}
-
-/* ---------------------------------------------------------------------
-   6) Responsive tweaks: switch to 2 columns at <640px, then 1 column at <420px 
-   while also reducing font‐size, gap, and padding so nothing ever overflows.
-   --------------------------------------------------------------------- */
-@media (max-width: 640px) {
-  .slotmachine {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-  }
-  .reel {
-    font-size: 0.85rem;
-    min-height: 3rem;
-  }
-}
-
-@media (max-width: 420px) {
-  .slotmachine {
-    grid-template-columns: 1fr; /* stack vertically on very narrow screens */
-  }
-  .reel {
-    font-size: 0.8rem;
-    min-height: 2.5rem;
-  }
-}
-
-/* ---------------------------------------------------------------------
-   7) (Optional) Tweak the “Discover Artists” button spacing to sit nicely
-      under the grid without causing overflow  
-   --------------------------------------------------------------------- */
-.slot-machine-wrapper .join-button {
-  margin-top: 0.75rem;
+@media (max-width:420px){
+  .reel{ font-size:0.8rem; min-height:2.5rem; }
 }
 
 .modal-content input[type="text"],
 .modal-content input[type="radio"],
-.modal-content label {      /* radios inherit font-size from their label */
-  font-size: 16px;          /* ≥16 px disables Safari’s zoom */
-}
-
-@media (min-width: 480px){          /* only on wider screens */
-  .modal-content input[type="text"]{
-    font-size: 0.875rem;   /* ≈14 px, but Safari sees 16 px on phone */
-  }
-}
-
-/* fade + slide each reel as it appears */
-.reel {
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity .3s ease, transform .3s ease;
-}
-.reel--visible {                 /* we’ll add this class in JSX */
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.modal-body {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* src/styles/modal.css – extra rules specifically for the two‑button Ticket modal */
-
-/* Stack the ticket buttons vertically and centre them */
-.ticket-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3rem;            /* minimal space between buttons */
-}
-
-/* Tighten up the padding so text sits closer to the border */
-.ticket-buttons .join-button,
-.ticket-buttons .join-button.large {
-  padding: 0.35rem 0.75rem;   /* adjust to taste */
-  line-height: 1;             /* remove extra vertical whitespace */
-}
+.modal-content label{ font-size:16px; }
+@media (min-width:480px){ .modal-content input[type="text"]{ font-size:0.875rem; }}
