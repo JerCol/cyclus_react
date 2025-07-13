@@ -162,7 +162,7 @@
 
 /* make the column a bit wider and forbid wrapping */
 .time-slot {
-  font-weight: 700;
+  font-weight: 400;
   margin-right: 0.5rem;
   width: 11ch;          /* fits “00:00-23:59” comfortably */
   text-align: right;
