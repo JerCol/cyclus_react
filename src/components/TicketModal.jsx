@@ -1,5 +1,4 @@
-/* src/components/InfoModal.jsx – simplified: tickets only (no dinner prompt)
-   Fix: use location.redirect on mobile so Payconiq link opens reliably */
+/* src/components/InfoModal.jsx – single clean version (PDF first, then Payconiq) */
 
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
@@ -10,57 +9,60 @@ import { supabase } from "../lib/supabaseClient";
 import CostTransparencyModal from "./CostTransparencyModal";
 
 /* ------------------------------------------------------------------
-   Helper: create poster PDF with white background and trigger download
+   Helper: create poster PDF and trigger download / share sheet.
+   Returns a Promise that resolves once the browser fires the download.
 ------------------------------------------------------------------- */
-function downloadPosterAsPDF() {
-  const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
+function savePosterPDF() {
+  return new Promise((resolve) => {
+    const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
 
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = concept;
-  img.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = concept;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
 
-    const jpgData = canvas.toDataURL("image/jpeg", 1.0);
+      const jpgData = canvas.toDataURL("image/jpeg", 1.0);
 
-    const pdf = new jsPDF({
-      orientation: img.width > img.height ? "l" : "p",
-      unit: "px",
-      format: [img.width, img.height],
-    });
+      const pdf = new jsPDF({
+        orientation: img.width > img.height ? "l" : "p",
+        unit: "px",
+        format: [img.width, img.height],
+      });
 
-    pdf.addImage(jpgData, "JPEG", 0, 0, img.width, img.height);
+      pdf.addImage(jpgData, "JPEG", 0, 0, img.width, img.height);
+      pdf.setFontSize(48);
+      pdf.setTextColor(255, 215, 0);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("THANKS FOR YOUR SUPPORT", img.width / 2, img.height / 2, {
+        align: "center",
+      });
 
-    pdf.setFontSize(48);
-    pdf.setTextColor(255, 215, 0);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("THANKS FOR YOUR SUPPORT", img.width / 2, img.height / 2, {
-      align: "center",
-    });
-
-    if (isiOS) {
-      const a = document.createElement("a");
-      a.href = pdf.output("bloburl");
-      a.download = "cyclus_ticket.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      pdf.save("cyclus_ticket.pdf");
-    }
-  };
+      if (isiOS) {
+        const a = document.createElement("a");
+        a.href = pdf.output("bloburl");
+        a.download = "cyclus_ticket.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        pdf.save("cyclus_ticket.pdf");
+      }
+      setTimeout(resolve, 200); // brief delay ensures download starts
+    };
+  });
 }
 
 export default function InfoModal({ onClose }) {
   const [links, setLinks] = useState([]);
-  const [showCosts, setShowCosts] = useState(false);
   const [extraText, setExtraText] = useState(null);
+  const [showCosts, setShowCosts] = useState(false);
 
   /* Fetch payment links */
   useEffect(() => {
@@ -86,36 +88,36 @@ export default function InfoModal({ onClose }) {
   }, []);
 
   /* --------------------------------------------------------------
-     Ticket click handler – opens link & logs income
+     Ticket click handler – PDF first, then Payconiq
   -------------------------------------------------------------- */
   const handleTicketClick = async (ticketName) => {
     const row = links.find((r) => r.name === ticketName);
     if (!row) return;
 
+    const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
     const price = ticketName === "support_ticket" ? 10 : 15;
 
-    try {
-      await supabase.from("income").insert([
-        {
-          name: `ticket_sale_${Date.now()}`,
-          category: "ticket",
-          amount: price,
-        },
-      ]);
-    } catch (err) {
-      console.error("Failed inserting income:", err.message);
-    }
+    /* Log income (fire‑and‑forget) */
+    supabase.from("income").insert([
+      { name: `ticket_sale_${Date.now()}`, category: "ticket", amount: price },
+    ]);
 
-    /* Open payment link – use full redirect on mobile to satisfy Payconiq */
-    const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
+    /* 1️⃣ First open the Payconiq link */
+    let payWindow;
     if (isMobile) {
-      window.location.href = row.link; // navigate in same tab
+      // Open in a new tab so the JS thread can continue to run and save the PDF
+      payWindow = window.open(row.link, "_blank");
     } else {
-      window.open(row.link, "_blank", "noopener,noreferrer");
+      payWindow = window.open(row.link, "_blank", "noopener,noreferrer");
     }
 
-    /* Generate / download PDF after slight delay (desktop only) */
-    if (!isMobile) setTimeout(downloadPosterAsPDF, 600);
+    /* 2️⃣ Then generate / download the PDF */
+    await savePosterPDF();
+
+    /* 3️⃣ If the popup was blocked on mobile, fall back to same‑tab redirect */
+    if (isMobile && !payWindow) {
+      window.location.href = row.link;
+    }
   };
 
   return (
