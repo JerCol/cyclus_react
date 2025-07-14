@@ -21,7 +21,7 @@ export default function TopSection({ onInfoClick, attendeeCount }) {
           onClick={() => navigate("/ticket")}
           className="support-button"
         >
-          TICKET
+          TICKET/DONATION
         </JoinButton>
       </div>
 

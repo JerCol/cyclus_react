@@ -5,13 +5,11 @@ import JoinButton from "./JoinButton";
 import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabaseClient";
 import CostTransparencyModal from "./CostTransparencyModal";
-import TicketReceivalModal from "./TicketReceivalModal";
 
 /* ------------------------------------------------------------------
  * Helper: build the poster PDF and return a jsPDF instance.
- * Used by both the download-to-disk flow and the email flow.
+ * (Kept here in case you still need the function elsewhere.)
  * ----------------------------------------------------------------- */
-
 export function createPosterPDF() {
   return new Promise((resolve) => {
     const img = new Image();
@@ -69,30 +67,37 @@ export async function savePosterPDF() {
 }
 
 /* ------------------------------------------------------------------
- * Helper: send the generated PDF to an email address (async).
- * Uses Supabase Edge Function "send-ticket" that accepts JSON:
- *   { email: string, pdfBase64: string }
+ * Thank‑You modal shown after ticket purchase
  * ----------------------------------------------------------------- */
-export async function emailPosterPDF(email) {
-  const pdf = await createPosterPDF();
-  const pdfBase64 = pdf.output('datauristring').split(',')[1];   // strip the prefix
-
-  // ‼️  The string here must be the function’s **slug** (folder name),
-  //     *not* the full URL.  In your project that slug is `resend-email`.
-  const { data, error } = await supabase.functions.invoke('resend-email', {
-    body: { email, pdfBase64 },          // JSON payload
-    // method, headers, apikey are filled-in automatically by supabase-js
-  });
-
-  if (error) throw error;
-  return data;                           // whatever you return from the Edge Function
+function ThankYouModal({ onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="join-button close-button" onClick={onClose}>
+          &times;
+        </button>
+        <div className="modal-body">
+          <p><strong>Thanks for your support!</strong></p>
+          <p>
+            Doors open at <strong>19h30</strong> for our shared dinner (vegan option
+            available).<br />We’d love you to dine with us so the adventure starts
+            collectively from the very beginning.
+          </p>
+          <p>See you soon!</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
+/* ------------------------------------------------------------------
+ * InfoModal – main component
+ * ----------------------------------------------------------------- */
 export default function InfoModal({ onClose }) {
   const [links, setLinks] = useState([]);
   const [extraText, setExtraText] = useState(null);
   const [showCosts, setShowCosts] = useState(false);
-  const [showReceival, setShowReceival] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
 
   /* Fetch payment links */
   useEffect(() => {
@@ -118,7 +123,7 @@ export default function InfoModal({ onClose }) {
   }, []);
 
   /* --------------------------------------------------------------
-     Ticket click handler – Payconiq first, then show receival modal
+     Ticket click handler – Payconiq first, then show thank‑you modal
   -------------------------------------------------------------- */
   const handleTicketClick = (ticketName) => {
     const row = links.find((r) => r.name === ticketName);
@@ -127,7 +132,7 @@ export default function InfoModal({ onClose }) {
     const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
     const price = ticketName === "support_ticket" ? 10 : 15;
 
-    /* Log income (fire-and-forget) */
+    /* Log income (fire‑and‑forget) */
     supabase
       .from("income")
       .insert([{ name: `ticket_sale_${Date.now()}`, category: "ticket", amount: price }]);
@@ -140,10 +145,10 @@ export default function InfoModal({ onClose }) {
       payWindow = window.open(row.link, "_blank", "noopener,noreferrer");
     }
 
-    /* 2️⃣ Show the Receival modal */
-    setShowReceival(true);
+    /* 2️⃣ Show the Thank‑You modal */
+    setShowThankYou(true);
 
-    /* 3️⃣ If the popup was blocked on mobile, fall back to same-tab redirect */
+    /* 3️⃣ If the popup was blocked on mobile, fall back to same‑tab redirect */
     if (isMobile && !payWindow) {
       window.location.href = row.link;
     }
@@ -173,12 +178,7 @@ export default function InfoModal({ onClose }) {
 
       {showCosts && <CostTransparencyModal onClose={() => setShowCosts(false)} />}
 
-      {showReceival && (
-        <TicketReceivalModal
-          onEmail={emailPosterPDF}
-          onClose={() => setShowReceival(false)}
-        />
-      )}
+      {showThankYou && <ThankYouModal onClose={() => setShowThankYou(false)} />}
     </div>
   );
 }
