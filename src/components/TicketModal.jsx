@@ -78,11 +78,11 @@ function ThankYouModal({ onClose }) {
         </button>
         <div className="modal-body">
           <p><strong>Thanks for your support!</strong></p>
-          <p>
+          {/* <p>
             Doors open at <strong>19h30</strong> for our shared dinner (vegan option
             available).<br />We’d love you to dine with us so the adventure starts
             collectively from the very beginning.
-          </p>
+          </p> */}
           <p>See you soon!</p>
         </div>
       </div>
