@@ -1,5 +1,3 @@
-/* src/components/InfoModal.jsx – single clean version (PDF first, then Payconiq) */
-
 import React, { useEffect, useState } from "react";
 import "../styles/modal.css";
 import concept from "../assets/concept.webp";
@@ -7,18 +5,19 @@ import JoinButton from "./JoinButton";
 import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabaseClient";
 import CostTransparencyModal from "./CostTransparencyModal";
+import TicketReceivalModal from "./TicketReceivalModal";
 
 /* ------------------------------------------------------------------
-   Helper: create poster PDF and trigger download / share sheet.
-   Returns a Promise that resolves once the browser fires the download.
-------------------------------------------------------------------- */
-function savePosterPDF() {
-  return new Promise((resolve) => {
-    const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
+ * Helper: build the poster PDF and return a jsPDF instance.
+ * Used by both the download-to-disk flow and the email flow.
+ * ----------------------------------------------------------------- */
 
+export function createPosterPDF() {
+  return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.src = concept;
+
     img.onload = () => {
       const canvas = document.createElement("canvas");
       canvas.width = img.width;
@@ -44,25 +43,56 @@ function savePosterPDF() {
         align: "center",
       });
 
-      if (isiOS) {
-        const a = document.createElement("a");
-        a.href = pdf.output("bloburl");
-        a.download = "cyclus_ticket.pdf";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        pdf.save("cyclus_ticket.pdf");
-      }
-      setTimeout(resolve, 200); // brief delay ensures download starts
+      resolve(pdf);
     };
   });
+}
+
+/* ------------------------------------------------------------------
+ * Helper: trigger a browser download of the poster PDF.
+ * iOS Safari requires the blobUrl hack to show the share sheet.
+ * ----------------------------------------------------------------- */
+export async function savePosterPDF() {
+  const isiOS = /iP(hone|od|ad)/i.test(navigator.userAgent);
+  const pdf = await createPosterPDF();
+
+  if (isiOS) {
+    const a = document.createElement("a");
+    a.href = pdf.output("bloburl");
+    a.download = "cyclus_ticket.pdf";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    pdf.save("cyclus_ticket.pdf");
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Helper: send the generated PDF to an email address (async).
+ * Uses Supabase Edge Function "send-ticket" that accepts JSON:
+ *   { email: string, pdfBase64: string }
+ * ----------------------------------------------------------------- */
+export async function emailPosterPDF(email) {
+  const pdf = await createPosterPDF();
+  const pdfBase64 = pdf.output('datauristring').split(',')[1];   // strip the prefix
+
+  // ‼️  The string here must be the function’s **slug** (folder name),
+  //     *not* the full URL.  In your project that slug is `resend-email`.
+  const { data, error } = await supabase.functions.invoke('resend-email', {
+    body: { email, pdfBase64 },          // JSON payload
+    // method, headers, apikey are filled-in automatically by supabase-js
+  });
+
+  if (error) throw error;
+  return data;                           // whatever you return from the Edge Function
 }
 
 export default function InfoModal({ onClose }) {
   const [links, setLinks] = useState([]);
   const [extraText, setExtraText] = useState(null);
   const [showCosts, setShowCosts] = useState(false);
+  const [showReceival, setShowReceival] = useState(false);
 
   /* Fetch payment links */
   useEffect(() => {
@@ -88,33 +118,32 @@ export default function InfoModal({ onClose }) {
   }, []);
 
   /* --------------------------------------------------------------
-     Ticket click handler – PDF first, then Payconiq
+     Ticket click handler – Payconiq first, then show receival modal
   -------------------------------------------------------------- */
-  const handleTicketClick = async (ticketName) => {
+  const handleTicketClick = (ticketName) => {
     const row = links.find((r) => r.name === ticketName);
     if (!row) return;
 
     const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
     const price = ticketName === "support_ticket" ? 10 : 15;
 
-    /* Log income (fire‑and‑forget) */
-    supabase.from("income").insert([
-      { name: `ticket_sale_${Date.now()}`, category: "ticket", amount: price },
-    ]);
+    /* Log income (fire-and-forget) */
+    supabase
+      .from("income")
+      .insert([{ name: `ticket_sale_${Date.now()}`, category: "ticket", amount: price }]);
 
-    /* 1️⃣ First open the Payconiq link */
+    /* 1️⃣ Open the Payconiq link */
     let payWindow;
     if (isMobile) {
-      // Open in a new tab so the JS thread can continue to run and save the PDF
       payWindow = window.open(row.link, "_blank");
     } else {
       payWindow = window.open(row.link, "_blank", "noopener,noreferrer");
     }
 
-    /* 2️⃣ Then generate / download the PDF */
-    await savePosterPDF();
+    /* 2️⃣ Show the Receival modal */
+    setShowReceival(true);
 
-    /* 3️⃣ If the popup was blocked on mobile, fall back to same‑tab redirect */
+    /* 3️⃣ If the popup was blocked on mobile, fall back to same-tab redirect */
     if (isMobile && !payWindow) {
       window.location.href = row.link;
     }
@@ -143,6 +172,14 @@ export default function InfoModal({ onClose }) {
       </div>
 
       {showCosts && <CostTransparencyModal onClose={() => setShowCosts(false)} />}
+
+      {showReceival && (
+        <TicketReceivalModal
+          onDownload={savePosterPDF}
+          onEmail={emailPosterPDF}
+          onClose={() => setShowReceival(false)}
+        />
+      )}
     </div>
   );
 }
