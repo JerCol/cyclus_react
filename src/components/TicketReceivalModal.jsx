@@ -4,7 +4,6 @@ import "../styles/modal.css";
 import JoinButton from "./JoinButton";
 
 export default function TicketReceivalModal({ onDownload, onEmail, onClose }) {
-  const [downloading, setDownloading] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [email, setEmail] = useState("");
   const [feedback, setFeedback] = useState(null);
@@ -54,17 +53,11 @@ export default function TicketReceivalModal({ onDownload, onEmail, onClose }) {
         <div className="modal-body">
           <p>
             Your payment link has opened in a new tab. Once you’ve completed the payment,
-            you can download or e-mail your ticket:
+            you can e-mail your ticket:
           </p>
 
           <div className="pdf-actions flex flex-col gap-4 mt-4">
-            {/* Download */}
-            <JoinButton onClick={handleDownloadClick} disabled={downloading}>
-              {downloading ? "Generating…" : "Download PDF"}
-            </JoinButton>
-            <br></br>
-            <br></br>
-
+            
             {/* E-mail */}
             <div className="flex flex-col gap-2 w-full">
               <input

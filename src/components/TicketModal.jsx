@@ -175,7 +175,6 @@ export default function InfoModal({ onClose }) {
 
       {showReceival && (
         <TicketReceivalModal
-          onDownload={savePosterPDF}
           onEmail={emailPosterPDF}
           onClose={() => setShowReceival(false)}
         />
