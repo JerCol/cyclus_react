@@ -125,35 +125,42 @@ export default function InfoModal({ onClose }) {
   /* --------------------------------------------------------------
      Ticket click handler – Payconiq first, then show thank‑you modal
   -------------------------------------------------------------- */
-  const handleTicketClick = (ticketName) => {
-    const row = links.find((r) => r.name === ticketName);
-    if (!row) return;
+ const handleTicketClick = async (ticketName) => {
+  const row = links.find((r) => r.name === ticketName);
+  if (!row) return;
 
-    const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
-    const price = ticketName === "support_ticket" ? 10 : 15;
+  const isMobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent);
+  const price    = ticketName === "support_ticket" ? 10 : 15;
 
-    /* Log income (fire‑and‑forget) */
-    supabase
-      .from("income")
-      .insert([{ name: `ticket_sale_${Date.now()}`, category: "ticket", amount: price }]);
+  /* 1️⃣ Try to log the sale — now awaited and error-checked */
+  const { data: incomeRow, error: incomeError } = await supabase
+    .from("income")
+    .insert([
+      {
+        name: `ticket_sale_${Date.now()}`,
+        category: "ticket",
+        amount:   price,
+      },
+    ])
+    .select();             // return the row so data isn't null
 
-    /* 1️⃣ Open the Payconiq link */
-    let payWindow;
-    if (isMobile) {
-      payWindow = window.open(row.link, "_blank");
-    } else {
-      payWindow = window.open(row.link, "_blank", "noopener,noreferrer");
-    }
+  if (incomeError) {
+    console.error("Could not log ticket sale:", incomeError);
+    // Optionally show a toast/snackbar to the user here
+  }
 
-    /* 2️⃣ Show the Thank‑You modal */
-    setShowThankYou(true);
+  /* 2️⃣ Open the Payconiq link */
+  const payOptions = isMobile ? "_blank" : "_blank,noopener,noreferrer";
+  const payWindow  = window.open(row.link, payOptions);
 
-    /* 3️⃣ If the popup was blocked on mobile, fall back to same‑tab redirect */
-    if (isMobile && !payWindow) {
-      window.location.href = row.link;
-    }
-  };
+  /* 3️⃣ Show the Thank-You modal */
+  setShowThankYou(true);
 
+  /* 4️⃣ If the popup was blocked on mobile, fall back to same-tab redirect */
+  if (isMobile && !payWindow) {
+    window.location.href = row.link;
+  }
+};
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
