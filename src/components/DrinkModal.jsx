@@ -96,7 +96,7 @@ export default function DrinkModal({ onClose }) {
 
         <div className="modal-body">
           <div className="ticket-buttons">
-            <JoinButton onClick={() => handleDrinkClick("drink_token_1", 1)}>
+            <JoinButton onClick={() => handleDrinkClick("drink_token_1", 2)}>
               1 TOKEN&nbsp;=&nbsp;€2
             </JoinButton>
             <JoinButton onClick={() => handleDrinkClick("drink_tokens_5", 10)}>
