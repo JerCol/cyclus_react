@@ -38,7 +38,7 @@ export default function DrinkModal({ onClose }) {
       const { data, error } = await supabase
         .from("payment_links")
         .select("name, link")
-        .in("name", ["drink_tokens_5", "drink_tokens_10", "drink_tokens_15"]);
+        .in("name", ["drink_token_1","drink_tokens_5", "drink_tokens_10", "drink_tokens_15"]);
       if (!error) setLinks(data);
     })();
   }, []);
