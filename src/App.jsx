@@ -20,6 +20,7 @@ import TicketModal     from "./components/TicketModal"
 import JoinButton      from "./components/JoinButton.jsx"; /* (kept for completeness) */
 import AddExpensePage from "./components/AddExpensePage"; // << at top with other imports
 import CostTransparencyModal from "./components/CostTransparencyModal";
+import DrinkModal from "./components/DrinkModal.jsx";
 
 
 /* ─── stylesheets ────────────────────────────────────────── */
@@ -142,6 +143,8 @@ export default function App() {
 
       {/* ===== /ticket : ONLY InfoModal and background ===== */}
       <Route path="/ticket" element={<TicketPage />} />
+          {/* ===== /drinks : ONLY DrinkModal and background ===== */}
+    <Route path="/drinks"             element={<DrinksPage />} />
 
       {/* ===== everything else : normal event page ===== */}
       <Route path="*" element={<HomePage />} />
@@ -172,6 +175,21 @@ function ExpensesIncomePage() {
       </>
     );
   }
+  function DrinksPage() {
+  const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/");           // or navigate(-1) to go back
+  };
+
+  return (
+    <div className="page-background">
+      {open && <DrinkModal onClose={handleClose} />}
+    </div>
+  );
+}
 
   /* ─── Join-form page — internal component ─────────────── */
 function JoinPage() {
