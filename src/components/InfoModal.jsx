@@ -59,7 +59,7 @@ export default function InfoModal({ onClose }) {
 
           {/* Event details */}
           <p>
-  <strong>Date:</strong> 25.07.2025&nbsp;(8 pm – 6 am)
+  <strong>Date:</strong> 25.07.2025&nbsp;(19:30 – 05:30)
   <br />
   <strong>Location:</strong>{" "}
   <a
